@@ -1,0 +1,37 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.du.common.publicresource.TransferUtilityCss"/>
+<script src="page.resource.request.do?name=net.micropact.aea.du.common.publicresource.TransferUtilityJavascript"></script>
+
+<script>
+    "use strict";
+
+    jQuery(function() {
+        var errors = $errors;
+        var displayTransferred = $transferred
+        var transfer = AeaTransferUtility.makeTransfer($users, $items, $toUser, $selectedFromUsers, $selectedItems)
+        var pageUrl = $pageUrl
+        var csrfToken = $csrfToken
+
+        const E = React.createElement
+
+        ReactDOM.render(E(AeaTransferUtility.ItemMoverApp, {
+                csrfToken: csrfToken,
+                hasBusinessKey: true,
+                transfer: transfer,
+                displayTransferred: displayTransferred,
+                errors: errors,
+                transferType: "Page",
+                transferTypePlural: "Pages",
+                submissionUrl: pageUrl,
+            }),
+            jQuery(".app")[0])
+    })
+</script>
+
+<div class="app"></div>

@@ -1,0 +1,42 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function IndexStandalone() {
+        const targetRef = React.useRef()
+
+        React.useEffect(function() {
+                const div = targetRef.current
+                jQuery(div).load("page.request.do", {
+                    page: "du.page.index"
+                })
+            },
+            [])
+
+        return E("div", {
+            ref: targetRef
+        })
+    }
+
+    function IndexStandaloneApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page contains links to all other Developer Utilities"]
+            },
+            E(IndexStandalone))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(IndexStandaloneApp),
+            jQuery('.app')[0])
+    })
+</script>
+
+<div class="app"></div>

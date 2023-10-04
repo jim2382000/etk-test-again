@@ -1,0 +1,222 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<style>
+    .submit {
+        margin-left: 1em;
+    }
+
+    .inputLabel {
+        display: inline-block;
+        margin-top: 0.2em;
+        vertical-align: top;
+    }
+
+    .multiselect {
+        display: inline-block;
+    }
+
+    .multiselect-selectAll {
+        border: 1px solid rgb(185, 185, 185);
+        border-radius: 0.3em;
+        margin-bottom: 0.2em;
+        padding: 0.1em;
+        padding-left: 0;
+        background-color: rgb(238, 238, 238);
+    }
+
+    .multiselect-items {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+</style>
+
+<script>
+    "use strict";
+
+    var config = {
+        subreportTypes: $subreportTypes,
+        csrfToken: $csrfToken
+    }
+
+    const E = React.createElement
+
+    var ConversionModel = (function() {
+
+        var state = {
+            subreportTypes: config.subreportTypes,
+            selectedReportType: null,
+            reports: $reports
+        }
+
+        initModel()
+
+        function initModel() {
+            state.reports.forEach(function(report) {
+                report.selected = false
+            })
+        }
+
+        function callEventListeners() {
+            init()
+        }
+
+        function setAllSelection(selected) {
+            state.reports.forEach(function(report) {
+                report.selected = selected
+            })
+            callEventListeners()
+        }
+
+        function getReports() {
+            return state.reports
+        }
+
+        function getSubreportTypes() {
+            return state.subreportTypes
+        }
+
+        function getSelectedSubreportType() {
+            return state.selectedSubreportType
+        }
+
+        function setReportSelected(reportId, selected) {
+            state.reports.filter(function(report) {
+                return report.BUSINESS_KEY == reportId
+            })[0].selected = selected
+            callEventListeners()
+        }
+
+        function setSelectedSubreportType(subreportType) {
+            state.selectedSubreportType = subreportType
+            callEventListeners()
+        }
+
+        return {
+            getSubreportTypes: getSubreportTypes,
+            getSelectedSubreportType: getSelectedSubreportType,
+            setSelectedSubreportType: setSelectedSubreportType,
+            getReports: getReports,
+            setReportSelected: setReportSelected,
+            setAllSelection: setAllSelection
+        }
+    }())
+
+    function SubreportTypes(props) {
+        var model = props.model
+        return E("label", null, "Target Sub Report Expression Type: ",
+            E("select", {
+                    name: "subreportType",
+                    value: model.getSelectedSubreportType(),
+                    onChange: function(event) {
+                        model.setSelectedSubreportType(event.target.value)
+                    }
+                },
+                model.getSubreportTypes().map(function(subreportType) {
+                    return E("option", {
+                            key: subreportType.value,
+                            value: subreportType.value
+                        },
+                        subreportType.display)
+                })))
+    }
+
+    function Multiselect(props) {
+        var items = props.items
+        var areAllChecked = items.every(function(item) {
+            return item.checked
+        })
+
+        return E("div", {
+                className: "multiselect"
+            },
+            E("div", {
+                    className: "multiselect-selectAll"
+                },
+                E("label", null,
+                    E("input", {
+                        type: "checkbox",
+                        checked: areAllChecked,
+                        onChange: function() {
+                            props.selectAll(!areAllChecked)
+                        }
+                    }),
+                    "Select All")),
+            E("ul", {
+                    className: "multiselect-items"
+                },
+                items.map(function(item) {
+                    return E("li", {
+                            key: item.value
+                        },
+                        E("label", null,
+                            E("input", {
+                                type: "checkbox",
+                                name: props.name,
+                                value: item.value,
+                                checked: item.checked,
+                                onChange: function(event) {
+                                    props.onSelect(item.value, !item.checked)
+                                }
+                            }), item.display))
+                })))
+    }
+
+    function ConvertSubreportExpressions() {
+        return E(AeaCoreReactComponents.Form, {
+                method: "POST",
+                action: "page.request.do?page=du.page.convertSubreportExpressions",
+                csrfToken: config.csrfToken
+            },
+            E("div", null,
+                E("label", {
+                    className: "inputLabel"
+                }, "Reports: "),
+                E(Multiselect, {
+                    name: "reports",
+                    selectAll: ConversionModel.setAllSelection,
+                    onSelect: function(value, selected) {
+                        ConversionModel.setReportSelected(value, selected)
+                    },
+                    items: ConversionModel.getReports().map(function(report) {
+                        return {
+                            value: report.BUSINESS_KEY,
+                            display: report.NAME + " (" + report.BUSINESS_KEY + ")",
+                            checked: report.selected
+                        }
+                    })
+                })),
+            E(SubreportTypes, {
+                model: ConversionModel
+            }),
+            E("div", null,
+                E("button", {
+                    className: "formButton"
+                }, "Submit")))
+    }
+
+    function ConvertSubreportExpressionsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: [
+                    E("span", null, "This page can be used to convert the ", E("code", null, "subreportExpression"), " tags in XML reports to different formats."),
+                    E("span", null, "Jaspersoft Studio and the platform use different ", E("code", null, "subreportExpression"), " tags to define subreports. If you create a report in Jaspersoft Studio, you must convert the ", E("code", null, "subreportExpression"), " tags into the format expected by the platform. The converse is also true."),
+                    "Before running this page, you should make sure that your reports are backed up."
+                ]
+            },
+            E(ConvertSubreportExpressions))
+    }
+
+    function init() {
+        ReactDOM.render(E(ConvertSubreportExpressionsApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

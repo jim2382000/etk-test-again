@@ -1,0 +1,21 @@
+<style>
+	.setup-message {
+		white-space: pre-wrap;
+	}
+</style>
+
+Setup handlers have been run. Below is a summary of the results.
+
+<ul>
+	#foreach($setupHandlerResult in $setupResponse.getSetupHandlerResults())
+		<li>
+			<span>$esc.html(${setupHandlerResult.getServiceBundle().getName()})</span>
+			<span>($esc.html(${setupHandlerResult.getSetupHandlerClass().getName()}))</span>
+			<ul>
+				#foreach($message in $setupHandlerResult.getSetupHandlerResponse().getMessages())
+					<li class="setup-message">$esc.html($message)</li>
+				#end
+			</ul>
+		</li>
+	#end
+</ul>

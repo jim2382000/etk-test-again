@@ -1,0 +1,76 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<style>
+    .aea-core-instructions p:first-child {
+        margin-top: 0;
+    }
+
+    .aea-core-instructions p:last-child {
+        margin-bottom: 0;
+    }
+
+    .aea-core-grid {
+        white-space: pre-wrap;
+    }
+</style>
+
+<script>
+    "use strict";
+
+    var elementMismatches = $elementMismatches;
+
+    const E = React.createElement
+
+    function MismatchedColumnTypes() {
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null,
+                    E("th", null, "Data Object Name"),
+                    E("th", null, "Data Element Name"),
+                    E("th", null, "Data Element Type"),
+                    E("th", null, "Mismatch Reason"))),
+            E("tbody", null, elementMismatches.map(function(element, i) {
+                return E("tr", {
+                        key: i
+                    },
+                    E("td", null, element.dataObjectName),
+                    E("td", null, element.dataElementName),
+                    E("td", null, element.elementType),
+                    E("td", null, element.reason))
+            })))
+    }
+
+    function MismatchedColumnTypesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: E("div", null,
+                    ["This page attempts to display discrepancies between system data types and database column types.",
+                        "It uses the currently deployed tracking configuration.",
+                        "Just because an element is listed here does not mean that your site needs to be fixed.",
+                        "For instance, lookups do not let you choose a length in the system, so the database may deliberately have a different value than the system.",
+                        "This page is still being tested so feedback is appreciated."
+                    ].map(function(note, i) {
+                        return E("p", {
+                            key: i
+                        }, note)
+                    }),
+                    E("p", null, E("strong", null, "Note: This page has not been updated for Data Type Plugins")))
+            },
+            E(MismatchedColumnTypes))
+    }
+
+    function init() {
+        ReactDOM.render(E(MismatchedColumnTypesApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

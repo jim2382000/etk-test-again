@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function CleanOrphanedAssignments() {
+        return E("p", null, "Orphaned Assignments have been removed from ETK_ASSIGNMENT")
+    }
+
+    function CleanOrphanedAssignmentsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page deletes assignments from ETK_ASSIGNMENT which are referencing tracked data objects which no longer exist."]
+            },
+            E(CleanOrphanedAssignments)
+        )
+    }
+
+    function init() {
+        ReactDOM.render(E(CleanOrphanedAssignmentsApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

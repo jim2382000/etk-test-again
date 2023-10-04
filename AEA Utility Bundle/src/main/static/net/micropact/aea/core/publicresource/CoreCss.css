@@ -1,0 +1,108 @@
+.aea-core-count{
+    font-style: italic;
+}
+
+.aea-core-count:before{
+    content: " (";
+}
+
+.aea-core-count:after{
+    content: ")";
+}
+
+.aea-core-stackData{
+    display: table;
+}
+
+.aea-core-stackData > * {
+    display: table-row;
+}
+
+.aea-core-stackData > * > * {
+    display: table-cell;
+    padding: 0.5em 0.5em;
+}
+
+.aea-core-hidden {
+    display: none;
+}
+
+table.aea-core-grid{
+    width: auto;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+table.aea-core-grid caption,
+table.aea-core-grid th,
+table.aea-core-grid td{
+    line-height: normal;
+}
+
+table.aea-core-grid > thead > tr > th{
+    font-weight: bold; /* Because ExtJS overrides the default browser behavior */
+}
+
+table.aea-core-grid-hyperlinked > tbody > tr{
+    cursor: pointer;
+}
+
+table.aea-core-grid-hyperlinked > tbody > tr:hover{
+    cursor: pointer;
+    background-color: #f1f1f1;
+}
+
+table.aea-core-grid caption{
+    background-color: #353535;
+    color: #ffffff;
+    padding: 0.5em;
+    font-weight: bold;
+    text-align: center;
+}
+
+table.aea-core-grid.aea-core-highlight > tbody > tr:hover{
+    background-color: #f1f1f1;
+}
+
+.aea-core-message{
+    font-weight: bold;
+    list-style: none;
+    padding-left: 0em;
+    margin-left: 0em;
+}
+
+.aea-core-error{
+    color: #e00000;
+}
+
+.aea-core-success{
+    color: #00aa00;
+}
+
+.aea-core-instructions{
+    border: 1px solid #CCCCCC;
+    border-radius: 1em;
+    padding: 1em;
+    margin-bottom: 1em;
+    display: inline-block;
+    max-width: 50em;
+}
+
+.aea-core-instructions > *:first-child{
+	margin-top: 0;
+}
+
+.aea-core-instructions > *:last-child{
+	margin-bottom: 0;
+}
+
+.aea-core-loading{
+    background-image: url("themes/default/web-pub/images/icons/ajax-loader.gif");
+    background-repeat: no-repeat;
+    padding-left: 1.5em;
+    display: inline-block;
+}
+
+.aea-core-loading:after{
+    content: " ...";
+}

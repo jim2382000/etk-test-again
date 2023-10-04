@@ -1,0 +1,73 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var lockedFilesModel = (function() {
+        var state = {
+            lockedFiles: $lockedFiles
+        }
+
+        return {
+            lockedFiles: state.lockedFiles
+        }
+    }())
+
+    const E = React.createElement
+
+    function UserView(props) {
+        return E("a", {
+                href: "admin.profile.update.request.do?id=" + encodeURIComponent(props.userId),
+                target: "_blank"
+            },
+            props.username)
+    }
+
+    function LockedFiles() {
+        var lockedFiles = lockedFilesModel.lockedFiles
+
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null,
+                    E("th", null, "Locked On"),
+                    E("th", null, "Locking User"),
+                    E("th", null, "Object Name"),
+                    E("th", null, "File Name"))),
+            E("tbody", null, lockedFiles.map(function(lockedFile, i) {
+                return E("tr", {
+                        key: i
+                    },
+                    E("td", null, lockedFile.LOCKEDON),
+                    E("td", null, E(UserView, {
+                        userId: lockedFile.USERID,
+                        username: lockedFile.USERNAME
+                    })),
+                    E("td", null, lockedFile.OBJECTNAME),
+                    E("td", null, E("a", {
+                            href: "workflow.do?dataObjectKey=" + encodeURIComponent(lockedFile.OBJECTKEY) + "&trackingId=" + encodeURIComponent(lockedFile.TRACKINGID),
+                            target: "_blank"
+                        },
+                        lockedFile.FILENAME)))
+            })))
+    }
+
+    function LockedFilesApp() {
+        return E(AeaCoreReactComponents.Application, {
+            instructions: ["This page display Document Management files which are currently locked, and provides links to those objects so that they may be unlocked."]
+        }, E(LockedFiles))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(LockedFilesApp),
+            jQuery('.app')[0])
+    })
+</script>
+
+<div class="app"></div>

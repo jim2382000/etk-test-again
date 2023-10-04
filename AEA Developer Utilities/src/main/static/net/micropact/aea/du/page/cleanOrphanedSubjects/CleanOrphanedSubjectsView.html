@@ -1,0 +1,35 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function CleanOrphanedSubjects() {
+        return E("p", null, "Orphaned Subjects have been removed from ETK_SUBJECT")
+    }
+
+    function CleanOrphanedSubjectsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page deletes records from ETK_SUBJECT which no longer point to a valid User or Group.",
+                    "If all of your User/Group management has been done through the system front-end or public API, then you should not have any orphans.",
+                    "The only sites which should have orphaned records are ones which were writing their own SQL queries to delete records manually (usually as part of the initial data migration)."
+                ]
+            },
+            E(CleanOrphanedSubjects))
+    }
+
+    function init() {
+        ReactDOM.render(E(CleanOrphanedSubjectsApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var unusedTables = $unusedTables;
+
+    const E = React.createElement
+
+    function UnusedTables() {
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null,
+                    E("th", null, "Table"),
+                    E("th", null, "Drop Query"))),
+            E("tbody", null, unusedTables.map(function(table, i) {
+                return E("tr", {
+                        key: i
+                    },
+                    E("td", null, table),
+                    E("td", null, "DROP TABLE " + table + ";"))
+            })))
+    }
+
+    function UnusedTablesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page displays tables which are not part of the system configuration.",
+                    "They are most likely tables which were for Data Objects which have since been removed."
+                ]
+            },
+            E(UnusedTables)
+        )
+    }
+
+    function init() {
+        ReactDOM.render(E(UnusedTablesApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

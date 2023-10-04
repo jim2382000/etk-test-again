@@ -1,0 +1,74 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<style>
+    .sendButton {
+        margin-left: 0.5em;
+    }
+</style>
+
+<script>
+    "use strict";
+
+    var config = {
+        csrfToken: $csrfToken,
+        error: $error,
+        success: $success,
+        recipient: $recipient
+    }
+
+    const E = React.createElement
+
+    function SmtpTester() {
+        return E("div", null,
+            config.error !== null && E(AeaCoreReactComponents.Errors, {
+                errors: [config.error]
+            }),
+            config.success !== null && E(AeaCoreReactComponents.Successes, {
+                successes: [config.success]
+            }),
+            E(AeaCoreReactComponents.Form, {
+                    method: "POST",
+                    action: "page.request.do?page=du.page.smtpTester",
+                    csrfToken: config.csrfToken
+                },
+                E("input", {
+                    type: "hidden",
+                    name: "formAction",
+                    value: "send"
+                }),
+                E("label", null,
+                    E("span", null, "Recipient Address: "),
+                    E("input", {
+                        type: "text",
+                        name: "recipient",
+                        defaultValue: config.recipient
+                    })),
+                E("button", {
+                        className: "formButton sendButton"
+                    },
+                    "Send Test Email")))
+    }
+
+    function SmtpTesterApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page tests that the system is connected to the email server correctly.",
+                    "If you are not receiving emails from this page, first verify that they are not being blocked by your spam filter."
+                ]
+            },
+            E(SmtpTester))
+    }
+
+    function init() {
+        ReactDOM.render(E(SmtpTesterApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

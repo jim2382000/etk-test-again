@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .preformatted {
+        white-space: pre-wrap;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    (function() {
+        var httpHeaders = $httpHeaders
+
+        var E = React.createElement
+
+        function HttpHeadersApp() {
+            return E("div", null,
+                E(Instructions),
+                E(HttpHeaders))
+        }
+
+        function Instructions() {
+            return AeaCoreReactComponents.Instructions({
+                instructions: "This page shows the HTTP headers received by the page. It is useful for seeing changes made by a proxy server."
+            })
+        }
+
+        function HttpHeaders() {
+            return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+                className: "aea-core-grid preformatted",
+                headers: ["Key", "Value"],
+                caption: "HTTP Headers",
+                tbody: E("tbody", null, httpHeaders.map(function(httpHeader) {
+                    return E("tr", {
+                            key: httpHeader.key
+                        },
+                        E("td", null, httpHeader.key),
+                        E("td", null, httpHeader.value))
+                }))
+            })
+        }
+
+        function initialize() {
+            ReactDOM.render(HttpHeadersApp(null),
+                document.querySelector('.app'))
+        }
+
+        jQuery(initialize)
+    }())
+</script>
+
+<div class="app"></div>

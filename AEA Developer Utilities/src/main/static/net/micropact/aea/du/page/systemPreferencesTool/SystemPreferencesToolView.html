@@ -1,0 +1,352 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .preferenceNotPresentOnSystem {
+        background-color: #f1f1f1;
+    }
+
+    .noValue.noValue {
+        font-style: italic;
+        color: #888;
+    }
+
+    #app label {
+        line-height: 36px
+    }
+
+    #app button {
+        margin: 0.25em 0;
+    }
+
+    #app .null-value {
+        font-style: italic;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        csrfToken: $csrfToken,
+        actions: [{
+            name: "Export",
+            action: "export"
+        }, {
+            name: "Import",
+            action: "import"
+        }, {
+            name: "Set Production Values",
+            action: "setProductionValues"
+        }],
+        /* productionPreferences is just here for initialization, it gets copied by setProductionValuesModel */
+        productionPreferences: $productionPreferences,
+        /* allPreferences is just here for initialization, it gets copied by exportModel */
+        allPreferences: $allPreferences,
+
+        selectedAction: "export"
+    }
+
+    var E = React.createElement
+
+    var exportModel = (function() {
+        var state = {
+            preferences: null
+        }
+
+        init()
+
+        function init() {
+            state.preferences = config.allPreferences.map(function(preference) {
+                return {
+                    name: preference.name,
+                    isExportableByDefault: preference.isExportableByDefault,
+                    currentValue: preference.currentValue,
+                    isSelected: false
+                }
+            })
+        }
+
+        function getPreferences() {
+            return state.preferences
+        }
+
+        function setPreference(name, selected) {
+            state.preferences.filter(function(preference) {
+                return preference.name === name
+            })[0].isSelected = selected
+
+            render()
+        }
+
+        function clearAll() {
+            state.preferences.forEach(function(preference) {
+                preference.isSelected = false
+            })
+            render()
+        }
+
+        function selectRecommended() {
+            state.preferences.forEach(function(preference) {
+                preference.isSelected = preference.isExportableByDefault;
+            })
+
+            render()
+        }
+
+        return {
+            getPreferences: getPreferences,
+            setPreference: setPreference,
+            clearAll: clearAll,
+            selectRecommended: selectRecommended
+        }
+    }())
+
+    var setProductionValuesModel = (function() {
+        var state = {
+            preferences: null
+        }
+
+        init()
+
+        function init() {
+            state.preferences = config.productionPreferences.map(function(productionPreference) {
+                return {
+                    defaultProductionValue: productionPreference.defaultProductionValue,
+                    name: productionPreference.name,
+                    currentValue: getCurrentValue(productionPreference.name),
+                    isSelected: false
+                }
+            })
+        }
+
+        function getPreferences() {
+            return state.preferences
+        }
+
+        function setPreference(name, selected) {
+            state.preferences.filter(function(preference) {
+                return preference.name === name
+            })[0].isSelected = selected
+            render()
+        }
+
+        function setAllSelected(selected) {
+            state.preferences.forEach(function(preference) {
+                preference.isSelected = selected
+            })
+            render()
+        }
+
+        function areAllSelected() {
+            return state.preferences.every(function(preference) {
+                return preference.isSelected
+            })
+        }
+
+        return {
+            getPreferences: getPreferences,
+            setPreference: setPreference,
+            areAllSelected: areAllSelected,
+            setAllSelected: setAllSelected
+        }
+    }())
+
+    function getCurrentValue(preferenceName) {
+        var preferences = config.allPreferences;
+        for (var i = 0; i < preferences.length; i++) {
+            var preference = preferences[i]
+            if (preference.name === preferenceName) {
+                return preference.currentValue
+            }
+        }
+    }
+
+    function selectAction(action) {
+        config.selectedAction = action
+        render()
+    }
+
+    function ValueCell(props) {
+        var value = props.value
+
+        var display = value === null ? "null" : value
+        return E("td", {
+            className: value === null ? "null-value" : null
+        }, display)
+    }
+
+    function ActionType() {
+        return E("div", null,
+            E("label", null, "Action:"),
+            E("select", {
+                    name: "action",
+                    value: config.selectedAction,
+                    onChange: function(event) {
+                        selectAction(event.target.value)
+                    }
+                },
+                config.actions.map(function(action) {
+                    return E("option", {
+                            key: action.action,
+                            value: action.action
+                        },
+                        action.name)
+                })))
+    }
+
+    function ExportContent() {
+        return E("div", null,
+            E("table", {
+                    className: "grid aea-core-grid aea-core-highlight"
+                },
+                E("thead", null,
+                    E("tr", null,
+                        E("th", null,
+                            E("button", {
+                                    type: "button",
+                                    className: "formButton",
+                                    onClick: exportModel.clearAll
+                                },
+                                "Clear All"),
+                            E("button", {
+                                    type: "button",
+                                    className: "formButton",
+                                    onClick: exportModel.selectRecommended
+                                },
+                                "Select Recommended")),
+                        E("th", null, "Name"),
+                        E("th", null, "Current Value"))),
+                E("tbody", null,
+                    exportModel.getPreferences().map(function(preference) {
+                        var isSelected = preference.isSelected;
+                        return E("tr", {
+                                key: preference.name
+                            },
+                            E("td", null,
+                                E("input", {
+                                    type: "checkbox",
+                                    name: "preferences",
+                                    value: preference.name,
+                                    checked: isSelected,
+                                    onChange: function(event) {
+                                        exportModel.setPreference(preference.name, !isSelected)
+                                    }
+                                })),
+                            E("td", null,
+                                preference.name),
+                            E(ValueCell, {
+                                value: preference.currentValue
+                            }))
+                    }))),
+            E("button", {
+                    type: "submit",
+                    className: "formButton"
+                },
+                "Export"))
+    }
+
+    function ImportContent() {
+        return E("div", null,
+            E("label", null,
+                "File",
+                E("input", {
+                    type: "file",
+                    name: "importFile"
+                })),
+            E("button", {
+                    className: "formButton",
+                    type: "submit"
+                },
+                "Import"))
+    }
+
+    function SetProductionContent() {
+        var model = setProductionValuesModel
+        var areAllSelected = model.areAllSelected()
+
+        return E("div", null, E("table", {
+                    className: "grid aea-core-grid aea-core-highlight"
+                },
+                E("thead", null,
+                    E("tr", null,
+                        E("th", null,
+                            E("label", null, "Select All/None"),
+                            E("input", {
+                                type: "checkbox",
+                                checked: areAllSelected,
+                                onChange: function(event) {
+                                    model.setAllSelected(!areAllSelected)
+                                }
+                            })),
+                        E("th", null, "Name"),
+                        E("th", null, "Current Value"),
+                        E("th", null, "New Value"))),
+                E("tbody", null, model.getPreferences().map(function(preference) {
+                    var isSelected = preference.isSelected;
+                    return E("tr", {
+                            key: preference.name
+                        },
+                        E("td", null,
+                            E("input", {
+                                type: "checkbox",
+                                name: "preferences",
+                                value: preference.name,
+                                checked: isSelected,
+                                onChange: function(event) {
+                                    model.setPreference(preference.name, !isSelected)
+                                }
+                            })),
+                        E("td", null, preference.name),
+                        E(ValueCell, {
+                            value: preference.currentValue
+                        }),
+                        E(ValueCell, {
+                            value: preference.defaultProductionValue
+                        }))
+                }))),
+            E("button", {
+                    type: "submit",
+                    className: "formButton"
+                },
+                "Set to Production Values"))
+    }
+
+    function SystemPreferences() {
+        return E(AeaCoreReactComponents.Form, {
+                method: "POST",
+                action: "page.request.do?page=du.page.systemPreferencesTool",
+                encType: "multipart/form-data",
+                csrfToken: config.csrfToken
+            },
+            E(ActionType), E({
+                "export": ExportContent,
+                "import": ImportContent,
+                setProductionValues: SetProductionContent
+            } [config.selectedAction]))
+    }
+
+    function SystemPreferencesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page is for manipulating System Preferences. It has actions for Exporting and Importing preferences from one site to another. It can also set security-related values to their recommended values for a production environment. After using this page to change any preferences, the application must be restarted in order to clear the cache."]
+            },
+            E(SystemPreferences))
+    }
+
+    function render() {
+        ReactDOM.render(E(SystemPreferencesApp),
+            document.getElementById("app"))
+    }
+
+    function init() {
+        render()
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

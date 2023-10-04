@@ -1,0 +1,74 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        recordsWithoutWorkItems: $recordsWithoutWorkItems,
+        recordsWithoutRuntimes: $recordsWithoutRuntimes
+    }
+
+    const E = React.createElement
+
+    function ResultTable(props) {
+        return E("div", null,
+            E("h2", null, props.title),
+            E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+                headers: ["Business Key", "Tracking Id", "Link"],
+                tbody: E("tbody", null,
+                    props.records.map(function(record, i) {
+                        var businessKey = record.businessKey
+                        var trackingId = record.trackingId
+                        return E("tr", {
+                                key: i
+                            },
+                            E("td", null,
+                                businessKey),
+                            E("td", null,
+                                trackingId),
+                            E("td", null,
+                                E("a", {
+                                        href: "workflow.do?dataObjectKey=" + encodeURIComponent(businessKey) + "&trackingId=" + encodeURIComponent(trackingId),
+                                        target: "_blank"
+                                    },
+                                    "(Open Object)")))
+                    }))
+            }))
+    }
+
+    function CheckWorkflowCorruption(props) {
+        return E("div", null,
+            E(ResultTable, {
+                title: "Records without Workitems",
+                records: props.recordsWithoutWorkItems
+            }),
+            E(ResultTable, {
+                title: "Records without Workflow Runtimes",
+                records: props.recordsWithoutRuntimes
+            }))
+    }
+
+    function CheckWorkflowCorruptionApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page checks to see whether the workflows for objects appear to have been corrupted.",
+                    "Specifically it checks that each BTO has at least one record in both ETK_WORKITEM and ETK_WORKFLOW_RUNTIME."
+                ]
+            },
+            E(CheckWorkflowCorruption, config)
+        )
+    }
+
+    function init() {
+        ReactDOM.render(E(CheckWorkflowCorruptionApp, config),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

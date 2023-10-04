@@ -1,0 +1,78 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    em {
+        font-weight: bold;
+        font-style: normal;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = $fileSummary
+
+    const E = React.createElement
+
+    function OrphanedCColumnsSummary(props) {
+        return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+            headers: ["Data Object", "Data Element", "Tracking Id"],
+            caption: "Summary of Orphaned Elements",
+            className: "aea-core-grid",
+            tbody: E("tbody", null, props.orphanedRecords.map(function(record, i) {
+                return E("tr", {
+                        key: i
+                    },
+                    E("td", null, record.dataObjectName),
+                    E("td", null, record.dataElementName),
+                    E("td", null, record.trackingId))
+            }))
+        })
+    }
+
+    function OrphanedEtkRecordsSummary(props) {
+        var etkFileSummary = props.etkFileSummary
+        return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+            headers: ["File Id", "Object Type"],
+            caption: "Summary of Orphaned ETK_FILE Records",
+            className: "aea-core-grid",
+            tbody: E("tbody", null,
+                props.orphanedFiles.map(function(orphanedFile, i) {
+                    return E("tr", {
+                            key: i
+                        },
+                        E("td", null, orphanedFile.fileId),
+                        E("td", null, orphanedFile.objectType))
+                }))
+        })
+    }
+
+    function CleanOrphanedFiles() {
+        return E("div", null,
+            E(OrphanedCColumnsSummary, config),
+            E(OrphanedEtkRecordsSummary, config))
+    }
+
+    function CleanOrphanedFilesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page deletes files from ETK_FILE which are no longer referenced by entellitrak as well as Data Elements which reference ETK_FILE entries which do not exist.",
+                    "Content in a document management data store will not necessarily be cleaned up."
+                ]
+            },
+            E(CleanOrphanedFiles))
+    }
+
+    function init() {
+        ReactDOM.render(E(CleanOrphanedFilesApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

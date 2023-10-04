@@ -1,0 +1,96 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+<style>
+    .non-match {
+        background-color: #ffcc00;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        changedObjects: $changedObjects,
+        changedElements: $changedElements
+    }
+
+    const E = React.createElement
+
+    function MatchCell(props) {
+        return E("td", {
+                className: props.match ? "match" : "non-match"
+            },
+            props.children)
+    }
+
+    function ChangedObjects(props) {
+        return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+            className: "aea-core-grid",
+            caption: "Changed Objects",
+            headers: ["Name", "Label", "Object Name (Class Name)", "Business Key"],
+            tbody: E("tbody", null, config.changedObjects.map(function(object) {
+                return E("tr", {
+                        key: object.BUSINESS_KEY
+                    },
+                    E("td", null, object.NAME),
+                    E(MatchCell, {
+                        match: object.nameMatchesLabel
+                    }, object.LABEL),
+                    E(MatchCell, {
+                        match: object.nameMatchesObjectName
+                    }, object.OBJECT_NAME),
+                    E(MatchCell, {
+                        match: object.nameMatchesBusinessKey
+                    }, object.BUSINESS_KEY))
+            }))
+        })
+    }
+
+    function ChangedElements(props) {
+        return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+            className: "aea-core-grid",
+            caption: "Changed Elements",
+            headers: ["Object Name", "Element Name (Name)", "Element Name (Property)", "Element Business Key"],
+            tbody: E("tbody", null, config.changedElements.map(function(element) {
+                return E("tr", {
+                        key: element.BUSINESS_KEY
+                    },
+                    E("td", null, element.OBJECT_NAME),
+                    E("td", null, element.ELE_NAME),
+                    E(MatchCell, {
+                        match: element.nameMatchesPropertyName
+                    }, element.PROPERTY_NAME),
+                    E(MatchCell, {
+                        match: element.nameMatchesBusinessKey
+                    }, element.BUSINESS_KEY))
+            }))
+        })
+    }
+
+    function ChangedNames() {
+        return E("div", null,
+            E(ChangedObjects),
+            E(ChangedElements))
+    }
+
+    function ChangedNamesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page displays Data Objects which appear to have had their Label or Name changed after creation as well as Data Elements which appear to have had their Name changed after creation.",
+                    "This page does not indicate that there is a problem, but it can be useful if you are new to a project and would like to be aware of names which might not match your expectations."
+                ]
+            },
+            E(ChangedNames))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(React.StrictMode, null, 
+        		E(ChangedNamesApp)),
+            document.getElementById("app"))
+    })
+</script>
+
+<div id="app"></div>

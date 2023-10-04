@@ -1,0 +1,169 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    li {
+        list-style: none;
+    }
+
+    li>h3 {
+        display: inline-block;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .count {
+        display: inline-block;
+        font-style: italic;
+        margin-left: 0.25em;
+    }
+
+    .count::before {
+        content: "(";
+    }
+
+    .count::after {
+        content: ")";
+    }
+
+    .item-name {
+        font-weight: bold;
+    }
+
+    .toggler {
+        height: 12px;
+        width: 12px;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-image: url("web-pub/images/tree/minus.gif");
+        display: inline-block;
+    }
+
+    .toggler.collapsed {
+        background-image: url("web-pub/images/tree/plus.gif");
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var itemGroups = $itemGroups
+
+    const E = React.createElement
+
+    function User(props) {
+        var user = props.user
+        return E("li", null, E("a", {
+                target: "_blank",
+                href: "admin.profile.update.request.do?id=" + encodeURIComponent(user.userId)
+            },
+            user.name))
+    }
+
+    function Item(props) {
+        const [collapsed, setCollapsed] = React.useState(true)
+
+        var item = props.item
+
+        return E("li", null,
+            E("a", {
+                    className: "toggler" + (collapsed ? " collapsed" : ""),
+                    href: "",
+                    onClick: function(e) {
+                        e.preventDefault()
+                        setCollapsed(!collapsed)
+                    }
+                },
+                ""),
+            E("a", {
+                    className: " item-name",
+                    target: "_blank",
+                    href: item.url
+                },
+                item.name),
+            E("div", {
+                    className: "count"
+                },
+                item.users.length),
+            E("ul", {
+                    className: collapsed ? "hidden" : null
+                },
+                item.users.map(function(user, i) {
+                    return E(User, {
+                        key: user.userId,
+                        user: user
+                    })
+                })))
+    }
+
+    function ItemGroup(props) {
+        const [collapsed, setCollapsed] = React.useState(true)
+
+        var itemGroup = props.itemGroup
+
+        var toggleCollapseHandler = function(e) {
+            e.preventDefault()
+            setCollapsed(!collapsed)
+        }
+
+        return E("li", null,
+            E("a", {
+                className: "toggler" + (collapsed ? " collapsed" : ""),
+                href: "",
+                onClick: toggleCollapseHandler
+            }),
+            "",
+            E("h3", {
+                onClick: toggleCollapseHandler
+            }, itemGroup.type),
+            E("div", {
+                    className: "count"
+                },
+                itemGroup.items.length),
+            E("ul", {
+                className: collapsed ? "hidden" : null
+            }, itemGroup.items.map(function(item, i) {
+                return E(Item, {
+                    key: i,
+                    item: item
+                })
+            })))
+    }
+
+    function ViewDashboardDisplay() {
+        return E("ul", {
+            className: "item-groups"
+        }, itemGroups.map(function(itemGroup, i) {
+            return E(ItemGroup, {
+                key: i,
+                itemGroup: itemGroup
+            })
+        }))
+    }
+
+    function ViewDashboardDisplayApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page lists the Pages and Reports that users have displayed on their dashboards.",
+                    "This is useful because users occasionally put Pages or Reports that take a long time to run and lock up their system on their dashboards. This can also be useful if you are trying to diagnose why a particular user is not seeing something on their dashboard that they should."
+                ]
+            },
+            E(ViewDashboardDisplay))
+    }
+
+    function init() {
+        ReactDOM.render(E(ViewDashboardDisplayApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

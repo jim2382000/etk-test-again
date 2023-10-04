@@ -1,0 +1,131 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<style>
+    .aea-core-instructions p:first-child {
+        margin-top: 0;
+    }
+
+    .aea-core-instructions ul:last-child,
+    .aea-core-instructions li:last-child>p {
+        margin-bottom: 0;
+    }
+</style>
+
+<script>
+    "use strict";
+
+    var config = {
+        csrfToken: $csrfToken,
+        pageKey: "du.page.organizationalUnitImport",
+        errors: $errors,
+        undeletedNodes: $undeletedNodes,
+        importCompleted: $importCompleted
+    }
+
+    const E = React.createElement
+
+    function Errors(props) {
+        return E(AeaCoreReactComponents.Errors, {
+            errors: config.errors
+        })
+    }
+
+    function ImportSummary(props) {
+        return config.undeletedNodes === null ?
+            null :
+            E("div", null,
+                E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+                    className: "aea-core-grid",
+                    headers: ["Hierarchy Id", "Name", "Code"],
+                    caption: "Nodes to Delete",
+                    tbody: E("tbody", null, config.undeletedNodes.map(function(node) {
+                        return E("tr", {
+                                key: node.HIERARCHY_ID
+                            },
+                            E("td", null, node.HIERARCHY_ID),
+                            E("td", null, node.NAME),
+                            E("td", null, node.CODE))
+                    }))
+                }))
+    }
+
+    function InputForm(props) {
+        return E("div", null,
+            E(AeaCoreReactComponents.Form, {
+                    method: "POST",
+                    action: "page.request.do?page=" + config.pageKey,
+                    encType: "multipart/form-data",
+                    csrfToken: config.csrfToken
+                },
+                E(AeaStackForm.StackData, null,
+                    E(AeaStackForm.Hidden, {
+                        name: "update",
+                        value: "1"
+                    }),
+                    E(AeaStackForm.File, {
+                        name: "importFile",
+                        label: "File"
+                    }),
+                    E(AeaStackForm.Buttons, {
+                        buttons: [{
+                            type: "submit",
+                            className: "formButton",
+                            name: "Import"
+                        }]
+                    })
+
+                )))
+    }
+
+    function OrgUnitImport() {
+        return E("div", null,
+            E(Errors),
+            E(ImportSummary),
+            E(InputForm))
+    }
+
+    function Instructions() {
+        return E("div", null,
+            E("p", null,
+                "This page imports Organizational Units which were exported by ",
+                E("a", {
+                        href: "page.request.do?page=du.page.organizationalUnitExport"
+                    },
+                    "Organizational Unit Export")),
+            E("p", null, "The page has the following behavior:"),
+            E("ul", null, [E("p", null, E("strong", null, "Code will be used as the unique identifier for nodes."), " If a node with a particular code exists in both this site and the import file, the existing node will be updated to the correct place in the hierarchy and will keep its original hierarchy_id. This means that all references to it will remain valid."),
+                    E("p", null, E("strong", null, "No hierarchy nodes will be deleted."), " This is to prevent accidental loss of data. Upon import, this page will display a list of nodes which would have been deleted. The built-in ",
+                        E("a", {
+                            href: "admin.hierarchy.do",
+                            target: "_blank"
+                        }, "Organizational Hierarchy"), " screen may be used to perform the deletes."),
+                    E("p", null, E("strong", null, "All hierarchy nodes which exist in this site, but not in the import file will be reparented to the new root node."), " No attempt will be made to 'guess' an appropriate tree structure for them.")
+                ]
+                .map(function(element, i) {
+                    return E("li", {
+                        key: i
+                    }, element)
+                })))
+    }
+
+    function OrgUnitImportApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: E(Instructions)
+            },
+            E(OrgUnitImport))
+    }
+
+    function init() {
+        ReactDOM.render(E(OrgUnitImportApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

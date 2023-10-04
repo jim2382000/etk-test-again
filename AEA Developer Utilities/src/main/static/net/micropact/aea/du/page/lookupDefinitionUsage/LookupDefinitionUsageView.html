@@ -1,0 +1,331 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .plainList {
+        list-style: none;
+    }
+
+    .wrapper {
+        border: 1px solid #CCCCCC;
+        border-radius: 1em;
+        padding: 1em;
+        margin: 1em;
+        display: inline-block;
+    }
+
+    .keyTitle {
+        font-size: 1.25em;
+        font-weight: bold;
+        margin-left: 2em;
+    }
+
+    ul.lookupList {
+        color: black;
+        text-decoration: none;
+        font-size: 1.1em;
+        margin-left: 0em;
+        padding-left: 0em;
+    }
+
+    .cached {
+        font-style: italic;
+        float: right;
+        margin-right: 0.5em;
+    }
+
+    .lookupList>li>div,
+    .formControlList>li,
+    .dataElementList>li {
+        border-color: #3182BD;
+        border-style: solid;
+        border-width: 2px;
+        padding: 0.1em;
+        padding-left: 1em;
+        min-width: 50em;
+        display: inline-block;
+    }
+
+    .lookupList>li>div {
+        background-color: rgba(253, 141, 60, 0.5);
+    }
+
+    .formControlList>li {
+        background-color: rgba(54, 214, 149, 0.5);
+    }
+
+    .dataElementList>li {
+        background-color: rgba(198, 219, 239, 0.5);
+    }
+
+    div.filter {
+        display: block;
+        min-width: 40em;
+    }
+
+    .etk-theme-helium #app div.filter label {
+        line-height: 36px;
+    }
+
+    .invalid {
+        background-color: #FE6565;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function isRegexValid(string) {
+        try {
+            new RegExp(string)
+            return true
+        } catch (e) {
+            return false
+        }
+    }
+
+    function CachingEnabled(props) {
+        const {
+            cached
+        } = props
+
+        return cached ?
+            E("span", {
+                className: "cached"
+            }, "Cached") :
+            null
+    }
+
+    function Lookups(props) {
+        const {
+            loaded,
+            lookups
+        } = props
+
+        return E("div", {
+                className: "wrapper"
+            },
+            loaded ?
+            E("ul", {
+                    className: "plainList lookupList"
+                },
+                lookups.map(function(lookup) {
+                    return E("li", {
+                            key: lookup.businessKey
+                        },
+                        E("div", null,
+                            E("span", null, lookup.lookupName),
+                            E(CachingEnabled, {
+                                cached: lookup.cached
+                            })),
+                        E(DataElements, {
+                            dataElements: lookup.elementUsages
+                        }),
+                        E(FormControls, {
+                            formControls: lookup.formUsages
+                        }))
+                })) :
+            E(AeaCoreReactComponents.Loading))
+    }
+
+    function FormControls(props) {
+        const {
+            formControls
+        } = props
+
+        return E("ul", {
+                className: "plainList formControlList"
+            },
+            formControls.map(function(formControl) {
+                return E("li", {
+                        key: formControl.formControlBusinessKey
+                    },
+                    formControl.dataObjectName,
+                    " - ",
+                    formControl.formName,
+                    " - ",
+                    formControl.formControlName)
+            }))
+    }
+
+
+    function DataElements(props) {
+        const {
+            dataElements
+        } = props
+
+        return E("ul", {
+                className: "plainList dataElementList"
+            },
+            dataElements.map(function(dataElement) {
+                return E("li", {
+                        key: dataElement.dataElementBusinessKey
+                    },
+                    dataElement.objectName,
+                    " - ",
+                    dataElement.elementName)
+            }))
+    }
+
+    function Key() {
+        return E("div", {
+                className: "wrapper"
+            },
+            E("div", {
+                className: "keyTitle"
+            }, "Key"),
+            E("ul", {
+                    className: "plainList lookupList"
+                },
+                E("li", {},
+                    E("div", {}, "Lookup Definition",
+                        E("span", {
+                            className: "cached"
+                        }, "Cached?")),
+                    E("ul", {
+                            className: "plainList dataElementList"
+                        },
+                        E("li", {},
+                            E("span", {}, "DataObjectName - DataElementName"))),
+                    E("ul", {
+                            className: "plainList formControlList"
+                        },
+                        E("li", {},
+                            E("span", {}, "DataObjectName - DataForm - FormControlName"))))))
+    }
+
+    function Filters(props) {
+        return E("div", {
+                className: "wrapper filter"
+            },
+            E(Regex, props),
+            E(UnusedFilter, props),
+            E(CachedFilter, props))
+    }
+
+    function Regex(props) {
+        const {
+            regex,
+            setRegex
+        } = props
+
+        return E("div", {},
+            E("label", {}, "Filter Lookup Name by Regular Expression:"),
+            E("input", {
+                type: "text",
+                className: isRegexValid(regex) ? null : "invalid",
+                value: regex,
+                onChange: () => {
+                    setRegex(event.target.value)
+                }
+            }))
+    }
+
+    function UnusedFilter(props) {
+        const {
+            onlyShowUnused,
+            setOnlyShowUnused
+        } = props
+
+        return E("div", null,
+            E("label", {
+                htmlFor: "onlyShowUnusedInput"
+            }, "Only show unused lookups"),
+            E("input", {
+                id: "onlyShowUnusedInput",
+                type: "checkbox",
+                checked: onlyShowUnused,
+                onChange: () => {
+                    setOnlyShowUnused(!onlyShowUnused)
+                }
+            }))
+    }
+
+    function CachedFilter(props) {
+        const {
+            onlyShowCached,
+            setOnlyShowCached
+        } = props
+
+        return E("div", null,
+            E("label", {
+                htmlFor: "onlyShowCachedInput"
+            }, "Only show cached lookups"),
+            E("input", {
+                type: "checkbox",
+                id: "onlyShowCachedInput",
+                checked: onlyShowCached,
+                onChange: () => {
+                    setOnlyShowCached(!onlyShowCached)
+                }
+            }))
+    }
+
+    function LookupDefinitionContent() {
+        const [lookupDefinitions, setLookupDefinitions] = React.useState(null)
+        const [onlyShowUnused, setOnlyShowUnused] = React.useState(false)
+        const [onlyShowCached, setOnlyShowCached] = React.useState(false)
+        const [regex, setRegex] = React.useState("")
+
+        React.useEffect(function() {
+            jQuery.post('page.request.do?page=du.page.lookupDefinitionUsage.ajax', function(response) {
+                setLookupDefinitions(response)
+            })
+        }, [])
+
+        const loaded = lookupDefinitions !== null
+
+        const filteredLookups = lookupDefinitions === null ? null :
+            lookupDefinitions.filter(lookup => {
+                if (!isRegexValid(regex)) {
+                    return false
+                } else {
+                    var regexp = new RegExp(regex, "i")
+
+                    return regexp.test(lookup.lookupName) &&
+                        (!onlyShowUnused ||
+                            (lookup.elementUsages.length == 0 &&
+                                lookup.formUsages.length == 0)) &&
+                        (!onlyShowCached || lookup.cached)
+                }
+            })
+
+        return E("div", null,
+            E(Key),
+            E(Filters, {
+                regex,
+                setRegex,
+                onlyShowUnused,
+                setOnlyShowUnused,
+                onlyShowCached,
+                setOnlyShowCached
+            }),
+            E(Lookups, {
+                loaded,
+                lookups: filteredLookups
+            }))
+    }
+
+    function LookupDefinitionUsageApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page can be used to determine where lookups are being used",
+                    "It is recommended to check this page before modifying a lookup to see if it is used elsewhere in the system"
+                ]
+            },
+            E(LookupDefinitionContent))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(React.StrictMode, null,
+                E(LookupDefinitionUsageApp)),
+            document.getElementById("app"))
+    })
+</script>
+
+<div id="app"></div>

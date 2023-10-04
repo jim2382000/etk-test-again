@@ -1,0 +1,237 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .inactive {
+        color: #888888;
+        font-style: italic;
+    }
+
+    .selected {
+        background-color: #ff8888;
+    }
+
+    ul.plain>li {
+        cursor: pointer;
+
+    }
+
+    ul.plain>li:hover {
+        background-color: #f1f1f1;
+    }
+
+    ul.plain>li.selected:hover {
+        background-color: #ffaaaa;
+    }
+
+    ul.plain {
+        list-style-type: none;
+    }
+
+    .object-section {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    input[type=submit] {
+        display: block;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    var bulkDeleteModel = (function() {
+        var state = {
+            csrfToken: $csrfToken,
+            dataObjects: $dataObjects,
+            eventListeners: []
+        }
+
+        function addEventListener(func) {
+            state.eventListeners.push(func)
+        }
+
+        function callEventListeners() {
+            for (var i = 0; i < state.eventListeners.length; i++) {
+                state.eventListeners[i]()
+            }
+        }
+
+        function getReferenceDataObjects() {
+            return state.dataObjects.filter(function(dataObject) {
+                return dataObject.OBJECT_TYPE == 'REFERENCE'
+            })
+        }
+
+        function getBaseTrackedObjects() {
+            return state.dataObjects.filter(function(dataObject) {
+                return dataObject.OBJECT_TYPE == 'TRACKING'
+            })
+        }
+
+        function setSelected(dataObjectKey, isSelected) {
+            for (var i = 0; i < state.dataObjects.length; i++) {
+                if (dataObjectKey === state.dataObjects[i].BUSINESS_KEY) {
+                    state.dataObjects[i].selected = isSelected
+                    callEventListeners()
+                    return
+                }
+            }
+        }
+
+        function isSelected(dataObjectKey) {
+            for (var i = 0; i < state.dataObjects.length; i++) {
+                if (dataObjectKey == state.dataObjects[i].BUSINESS_KEY) {
+                    return state.dataObjects[i].selected === true
+                }
+            }
+        }
+
+        function getSelectedObjects() {
+            return state.dataObjects.filter(function(dataObject) {
+                return isSelected(dataObject.BUSINESS_KEY)
+            })
+        }
+
+        return {
+            state: state,
+
+            csrfToken: state.csrfToken,
+
+            getReferenceDataObjects: getReferenceDataObjects,
+            getBaseTrackedObjects: getBaseTrackedObjects,
+
+            setSelected: setSelected,
+            isSelected: isSelected,
+            getSelectedObjects: getSelectedObjects,
+
+            addEventListener: addEventListener
+        }
+
+    }())
+
+    function verifyDelete(event) {
+        var selectedObjects = bulkDeleteModel.getSelectedObjects()
+        if (selectedObjects.length == 0) {
+            alert("You must select objects to delete")
+            event.preventDefault()
+            return false;
+        } else {
+            if (confirm("Are you sure you want to delete the following objects:\n\n" +
+                    selectedObjects.map(function(dataObject) {
+                        return dataObject.LABEL
+                    }).join('\n'))) {
+                return true
+            } else {
+                event.preventDefault()
+                return false
+            }
+        }
+    }
+
+    function DeleteDataObjects(props) {
+        return E("div", {
+                className: "object-section"
+            },
+            E("h3", null, props.title),
+            E("ul", {
+                    className: "plain"
+                },
+                props.dataObjects.map(function(dataObject) {
+                    var businessKey = dataObject.BUSINESS_KEY
+                    var active = dataObject.count > 0
+                    var selected = bulkDeleteModel.isSelected(businessKey)
+
+                    function toggle() {
+                        bulkDeleteModel.setSelected(businessKey, !selected)
+                    }
+
+                    return E("li", {
+                            key: businessKey,
+                            className: [active ? "active" : "inactive",
+                                selected ? "selected" : null
+                            ].join(" "),
+                            onClick: active ? toggle : null
+                        },
+                        E("input", {
+                            type: 'checkbox',
+                            name: 'dataObjects',
+                            value: businessKey,
+                            checked: selected,
+                            onChange: toggle,
+                            disabled: !active
+                        }),
+                        E("span", {
+                                className: "display"
+                            },
+                            dataObject.LABEL),
+                        E("span", {
+                            className: "aea-core-count"
+                        }, dataObject.count))
+                })))
+    }
+
+    function DeleteElement() {
+        return E("input", {
+            type: "submit",
+            className: "formButton",
+            value: "Delete Data"
+        })
+    }
+
+    function BulkDeleteContent() {
+
+        const [state, setState] = React.useState({})
+
+        React.useEffect(function() {
+            bulkDeleteModel.addEventListener(function() {
+                setState({})
+            })
+        }, [])
+
+        return E("div", null,
+            E(AeaCoreReactComponents.Form, {
+                    method: 'POST',
+                    action: 'page.request.do?page=du.page.bulkDeleteData',
+                    onSubmit: verifyDelete,
+                    csrfToken: bulkDeleteModel.csrfToken
+                },
+                E(DeleteElement),
+                E(DeleteDataObjects, {
+                    title: "Base Tracked Objects",
+                    dataObjects: bulkDeleteModel.getBaseTrackedObjects()
+                }),
+                E(DeleteDataObjects, {
+                    title: "Reference Data Objects",
+                    dataObjects: bulkDeleteModel.getReferenceDataObjects()
+                }),
+                E(DeleteElement)))
+    }
+
+    function BulkDeleteDataApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page can be used to bulk delete data.",
+                    "It uses core's deleteWorkflow command and therefore will only delete those things deleted by that command.",
+                    "You may want to refer to the other Developer Utilities which do additional cleanup on ETK tables."
+                ],
+            },
+            E(BulkDeleteContent)
+        )
+    }
+
+    function initialize() {
+        ReactDOM.render(E(BulkDeleteDataApp),
+            document.querySelector('.app'))
+    }
+
+    jQuery(initialize)
+</script>
+
+<div class="app"></div>

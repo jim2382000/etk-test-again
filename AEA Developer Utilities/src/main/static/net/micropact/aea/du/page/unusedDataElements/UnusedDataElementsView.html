@@ -1,0 +1,59 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    table.grid>tbody>tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    const unusedDataElements = $unusedDataElements
+
+    function UnusedDataElements() {
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null,
+                    E("th", null, "Object Name"),
+                    E("th", null, "Data Element Name"),
+                    E("th", null, "Used on a View?"))),
+            E("tbody", null,
+                unusedDataElements.map(function(dataElement) {
+                    return E("tr", {
+                            key: dataElement.businessKey
+                        },
+                        E("td", null, dataElement.objectName),
+                        E("td", null, dataElement.elementName),
+                        E("td", null, dataElement.onView ? "Yes" : "No"))
+                })))
+    }
+
+    function UnusedDataElementsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page displays Data Elements which are not part of any Form. It also indicates whether or not the element is on a View.",
+                    "If an element is not on a View or Form, it is likely that it can be removed, however there will be exceptions for a particular site.",
+                    "An example of useful fields which are not on a form would be fields which are completely managed via a custom page."
+                ]
+            },
+            E(UnusedDataElements)
+        )
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(React.StrictMode, null,
+        		E(UnusedDataElementsApp)),
+            jQuery('.app')[0])
+    })
+</script>
+
+<div class="app"></div>

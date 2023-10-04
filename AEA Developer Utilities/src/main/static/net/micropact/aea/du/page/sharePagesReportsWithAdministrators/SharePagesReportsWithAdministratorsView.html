@@ -1,0 +1,30 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function SharePagesReports() {
+        return E("p", null, "The Administrator role has been given full permissions to all Pages and Reports")
+    }
+
+    function SharePagesReportsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page gives the administrator Role full permissions to edit all Pages and Reports"]
+            },
+            E(SharePagesReports))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(SharePagesReportsApp),
+            document.getElementById("app"))
+    })
+</script>
+
+<div id="app"></div>

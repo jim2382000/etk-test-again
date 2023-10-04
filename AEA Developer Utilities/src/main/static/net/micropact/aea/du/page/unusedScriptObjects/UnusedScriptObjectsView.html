@@ -1,0 +1,56 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const unusedScriptObjects = $unusedScriptObjects
+
+    const E = React.createElement
+
+    function UnusedScriptObjects() {
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null, ["Language", "Handler", "Name"].map(function(title, headerIndex) {
+                    return E("th", {
+                        key: headerIndex
+                    }, title)
+                }))),
+            E("tbody", null, unusedScriptObjects.map(function(scriptObject) {
+                return E("tr", {
+                        key: scriptObject.fullyQualifiedName
+                    },
+                    E("td", null, scriptObject.language),
+                    E("td", null, scriptObject.handler),
+                    E("td", null, scriptObject.fullyQualifiedName))
+            })))
+    }
+
+    function UnusedScriptObjectsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page generates a list of Script Objects which do not appear to be being used by the system. This is done by looking at Handler Types and Language Types and then searching for the places where these should be used within the system.",
+                    "This will not return things like generic Java or Beanshell Script Objects because there is no way to know that these are not included someplace else. This also may return Script Objects which are used if the metadata is incorrect, for instance a SQL Script which has Page Controller as a Handler Type selected will be returned or a HTML resource used for javadocs.",
+                    "With the addition of Data Type Plug-Ins, HTML or javascript files may be referenced from the code of other Script Objects. These scripts will show up as unused even though they are required for the Plug-In",
+                    "Scripts marked as \"Public Resource\" will be skipped since they would be expected to be referenced in code instead of metadata."
+                ]
+            },
+            E(UnusedScriptObjects)
+        )
+    }
+
+    function init() {
+        ReactDOM.render(E(React.StrictMode, null,
+        		E(UnusedScriptObjectsApp)),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

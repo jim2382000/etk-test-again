@@ -1,0 +1,55 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        badDates: $badRecords
+    }
+
+    const E = React.createElement
+
+    function ViewBadDates() {
+        return E("div", null,
+            E("table", {
+                    className: "grid aea-core-grid"
+                },
+                E("thead", null,
+                    E("tr", null,
+                        E("th", null, "Element"),
+                        E("th", null, "Bad Records"),
+                        E("th", null, "Query"))),
+                E("tbody", null,
+                    config.badDates.map(function(badDate) {
+                        return E("tr", {
+                                key: badDate.elementBusinessKey
+                            },
+                            E("td", null, badDate.elementBusinessKey),
+                            E("td", null, badDate.total),
+                            E("td", null, badDate.query)
+                        )
+                    }))))
+    }
+
+    function ViewBadDatesApp() {
+        return E(AeaCoreReactComponents.Application, {
+            instructions: ["This page shows data elements which are marked as Date in the system, but are being used to store Date and Time.",
+                "This is a problem for both platform code and custom code. For instance features such as Standard Search will not work as expected on these fields."
+            ]
+        }, E(ViewBadDates))
+    }
+
+    function init() {
+        ReactDOM.render(E(ViewBadDatesApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

@@ -1,0 +1,286 @@
+<div id="app"></div>
+
+<style>
+    .hidden {
+        display: none;
+    }
+
+	label[for=caseSensitive] {
+		margin-right: 0.7em;
+	}
+
+    ul.menu-list {
+        padding-left: 0;
+    }
+
+    ul.menu-list>li {
+        list-style: none;
+        list-style-position: inside;
+    }
+
+    .count {
+        font-style: italic;
+        color: #222;
+    }
+
+    .count:before {
+        content: " (";
+    }
+
+    .count:after {
+        content: ")";
+    }
+
+    .highlight {
+        background-color: #ffff88;
+    }
+
+    form {
+        background-color: #e8e8e8;
+        margin-bottom: 10px;
+        padding: 1em;
+    }
+
+    .type.empty {
+        display: none;
+    }
+
+    div.type-title {
+        color: #990000;
+        font-size: 2em;
+        padding: 0;
+        margin-top: 2em;
+        border-bottom: 1px solid #d3d3d3;
+    }
+
+    .result {
+        margin-top: 2em;
+    }
+
+    .no-results,
+    .no-results a,
+    .no-results .count {
+        color: #777777;
+    }
+
+    .has-results>a {
+        font-weight: bold;
+    }
+
+    .result:hover {
+        background-color: #f1f1f1;
+    }
+
+    .result>a {
+        font-size: 19px;
+    }
+
+    .matches {
+        font-family: "Courier New", Courier, monospace;
+    }
+</style>
+
+<script src="page.resource.request.do?name=net.entellitrak.aea.oAuth.publicResource.EntellitrakOAuthJavascript"></script>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const config = {
+        workspaces: $workspaces,
+        initialKeyword: $keyword,
+        initialWorkspaceName: $workspaceName,
+        initialCaseSensitive: $caseSensitive,
+        resultGroups: $resultGroups
+    }
+
+    const E = React.createElement
+
+    // clear should focus input
+
+    function Form(props) {
+        const {
+            keyword,
+            setKeyword,
+            keywordInputRef,
+            workspaceName,
+            setWorkspaceName,
+            caseSensitive,
+            setCaseSensitive,
+            clear
+        } = props
+
+        return E("form", {
+                action: "page.request.do?page=du.page.codeSearch",
+                method: "POST"
+            },
+            E("input", {
+                ref: keywordInputRef,
+                type: "text",
+                name: "keyword",
+                value: keyword,
+                onChange: event => {
+                    setKeyword(event.target.value)
+                }
+            }),
+            E("select", {
+                    name: "workspace",
+                    value: workspaceName,
+                    onChange: event => {
+                        setWorkspaceName(event.target.value)
+                    }
+                },
+                props.workspaces.map(function(workspace) {
+                    return E("option", {
+                        value: workspace,
+                        key: workspace
+                    }, workspace)
+                })),
+            E("label", {
+                    htmlFor: "caseSensitive"
+                },
+                E("input", {
+                    type: "checkbox",
+                    id: "caseSensitive",
+                    name: "caseSensitive",
+                    value: "1",
+                    checked: caseSensitive,
+                    onChange: () => {
+                        setCaseSensitive(!caseSensitive)
+                    }
+                }),
+                E("span", null, "Case Sensitive")),
+            E("input", {
+                type: "button",
+                className: "formButton",
+                name: "clear",
+                value: "Clear",
+                onClick: clear
+            }),
+            E("input", {
+                type: "submit",
+                className: "formButton",
+                name: "search",
+                value: "Search"
+            }))
+    }
+
+    function Results(props) {
+        const {
+            resultGroups
+        } = props
+
+        return E(React.Fragment, null,
+            E("ul", {
+                    className: "menu-list"
+                },
+                resultGroups.map(resultGroup => {
+                    return E("li", {
+                            key: resultGroup.title,
+                            className: resultGroup.results.length === 0 ? "no-results" : "has-results"
+                        },
+                        E("a", {
+                            href: `#codeSearch.${resultGroup.title}`
+                        }, resultGroup.title),
+                        E("span", {className: "count"}, resultGroup.results.length))
+                })),
+            E("div", {
+                    className: "search-results"
+                },
+                resultGroups.map(resultGroup => {
+                    const resultGroupClass = resultGroup.results.length === 0 ? "empty" : ""
+
+                    return E("div", {
+                            key: resultGroup.title,
+                            className: `type ${resultGroupClass}`
+                        },
+                        E("a", {
+                            id: `codeSearch.${resultGroup.title}`,
+                            className: "fixed-header-offset"
+                        }),
+                        E("div", {
+                            className: "type-title"
+                        }, resultGroup.title),
+                        resultGroup.results.map(result => {
+                            return E("div", {
+                                    key: result.name,
+                                    className: "result"
+                                },
+                                E("a", {
+                                        target: "_blank"
+                                    },
+                                    result.name),
+                                result.matches.map((match, matchIndex) => {
+                                    return E(Match, {match, key: matchIndex})
+                                }))
+                        }))
+                })))
+    }
+
+    function Match(props){
+    	const {
+    		match
+    	} = props
+    	
+    	return E("div", {
+    		className: "matches"
+    	},
+    	match.lineNumber, ": ",
+    	match.fragments.map((fragment, index) => {
+    		const className = fragment.type === "MATCH" ? "highlight" : null
+    		
+    		return E("span", {className, key: index}, fragment.text)
+    	}))
+    }
+    
+    function CodeSearchApp(props) {
+        const {
+            workspaces,
+            initialKeyword,
+            initialCaseSensitive,
+            resultGroups,
+        } = props
+
+        const [workspaceName, setWorkspaceName] = React.useState(props.initialWorkspaceName)
+        const [keyword, setKeyword] = React.useState(initialKeyword || "")
+        const [caseSensitive, setCaseSensitive] = React.useState(initialCaseSensitive)
+
+        const keywordInputRef = React.useRef()
+
+        React.useEffect(
+            () => {
+                keywordInputRef.current.focus()
+            }, [])
+
+        function clear() {
+            setKeyword("")
+            keywordInputRef.current.focus()
+        }
+
+        return E(React.Fragment, null,
+            E(Form, {
+                keyword,
+                setKeyword,
+                keywordInputRef,
+                workspaces,
+                workspaceName,
+                setWorkspaceName,
+                caseSensitive,
+                setCaseSensitive,
+                clear
+            }),
+            E(Results, {
+                resultGroups: resultGroups
+            }))
+
+    }
+
+    ReactDOM.render(
+        E(React.StrictMode, null,
+            E(CodeSearchApp, config)),
+        document.getElementById("app"));
+</script>

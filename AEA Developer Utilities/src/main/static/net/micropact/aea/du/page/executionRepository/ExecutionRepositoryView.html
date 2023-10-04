@@ -1,0 +1,108 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    table.grid>tbody>tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    table.grid .user-active {
+        color: #009900;
+    }
+
+    table.grid .user-inactive {
+        color: #e00000;
+    }
+
+    .label:after {
+        content: ": ";
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    var executionRepositoryModel = (function() {
+        var state = {
+            systemWorkspaceRevision: $systemWorkspaceRevision,
+            users: $users
+        }
+
+        function getSystemWorkspaceRevision() {
+            return state.systemWorkspaceRevision
+        }
+
+        function getUsers() {
+            return state.users
+        }
+
+        return {
+            getSystemWorkspaceRevision: getSystemWorkspaceRevision,
+            getUsers: getUsers
+        }
+    }())
+
+    function UsersView() {
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null, ["User", "Workspace Revision", "Active User"].map(function(heading, i) {
+                    return E("th", {
+                        key: i
+                    }, heading)
+                }))),
+            E("tbody", null, executionRepositoryModel.getUsers().map(function(user) {
+                var isActive = user.type_of_user === 1
+
+                return E("tr", {
+                        key: user.user_id
+                    },
+                    E("td", null,
+                        E("a", {
+                                href: "admin.profile.update.request.do?id=" + encodeURIComponent(user.user_id),
+                                target: "_blank"
+                            },
+                            user.username)),
+                    E("td", null, user.workspace_revision),
+                    E("td", {
+                            className: isActive ? "user-active" : "user-inactive"
+                        },
+                        isActive ? "Yes" : "No"))
+            })))
+    }
+
+    function SystemRepository() {
+        return E("div", null,
+            E("span", {
+                className: "label"
+            }, "System Repository Version"),
+            E("span", null, executionRepositoryModel.getSystemWorkspaceRevision()))
+    }
+
+    function ExecutionRepository() {
+        return E("div", null,
+            E(SystemRepository),
+            E(UsersView))
+    }
+
+    function ExecutionRepositoryApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page lists all users who are not using the System Repository for Execution"]
+            },
+            E(ExecutionRepository))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(ExecutionRepositoryApp),
+            jQuery('.app')[0])
+    })
+</script>
+
+<div class="app"></div>

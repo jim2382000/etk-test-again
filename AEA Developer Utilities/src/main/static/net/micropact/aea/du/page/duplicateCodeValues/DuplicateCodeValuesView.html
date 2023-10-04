@@ -1,0 +1,217 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .wrapper {
+        border: 1px solid #CCCCCC;
+        border-radius: 1em;
+        padding: 1em;
+        margin: 1em;
+        display: inline-block;
+    }
+
+    .keyTitle {
+        font-size: 1.25em;
+        font-weight: bold;
+        margin-left: 2em;
+    }
+
+    ul.object-list {
+        list-style-type: none;
+        margin-left: 1em;
+        padding-left: 0em;
+    }
+
+    ul.object-list>li {
+        margin-top: 1em;
+    }
+
+    .object-name {
+        background-color: #74E390;
+        padding: 0.5em;
+        border-radius: 0.5em;
+        margin: 0em;
+    }
+
+    ul.duplicate-list {
+        list-style-type: none;
+    }
+
+    .duplicate-code {
+        background-color: #FCA692;
+        margin: 0;
+        padding: 0.5em;
+        border-radius: 0.5em;
+    }
+
+    .item-list {
+        margin-bottom: 1em;
+    }
+
+    .amount,
+    .objectType {
+        font-style: italic;
+    }
+
+    .amount:before,
+    .objectType:before {
+        content: "(";
+    }
+
+    .amount:after,
+    .objectType:after {
+        content: ")";
+    }
+
+    .description {
+        max-width: 30em;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        dataObjects: $dataObjects
+    }
+
+    const E = React.createElement
+
+    function Key() {
+        return E("div", {
+                className: "wrapper"
+            },
+            E("div", {
+                className: "keyTitle"
+            }, "Key"),
+            E("ul", {
+                    className: "object-list"
+                },
+                E("li", null,
+                    E("h2", {
+                            className: "object-name"
+                        },
+                        "Data Object Name",
+                        E("span", {
+                                className: "objectType"
+                            },
+                            "Object Type"),
+                        E("span", {
+                                className: "amount"
+                            },
+                            "Number of conflicting codes")),
+                    E("ul", {
+                            className: "duplicate-list"
+                        },
+                        E("li", null,
+                            E("h3", {
+                                    className: "duplicate-code"
+                                },
+                                "Code Value",
+                                E("span", {
+                                        className: "amount"
+                                    },
+                                    "Number of conflicting items")),
+                            E("ul", {
+                                    className: "item-list"
+                                },
+                                E("li", null,
+                                    E("a", {
+                                            className: "duplicate-link"
+                                        },
+                                        "Tracking Id"))))))))
+    }
+
+    function Objects(props) {
+        return E("ul", {
+            className: "object-list"
+        }, props.dataObjects.map(function(dataObject, key) {
+            return E(DataObject, {
+                dataObject,
+                key
+            })
+        }))
+    }
+
+    function DataObject({
+        dataObject
+    }) {
+        return E("li", null,
+            E("h2", {
+                    className: "object-name"
+                },
+                dataObject.name,
+                E("span", {
+                    className: "objectType"
+                }, dataObject.objectType),
+                E("span", {
+                    className: "amount"
+                }, dataObject.duplicates.length)),
+            E("ul", {
+                className: "duplicate-list"
+            }, dataObject.duplicates.map(function(duplicate, key) {
+                return E(Duplicate, {
+                    duplicate,
+                    key
+                })
+            })))
+    }
+
+    function Duplicate({
+        duplicate
+    }) {
+        return E("li", null,
+            E("h3", {
+                    className: "duplicate-code"
+                }, duplicate.code,
+                E("span", {
+                    className: "amount"
+                }, duplicate.duplicateObjects.length)),
+            E("ul", {
+                className: "item-list"
+            }, duplicate.duplicateObjects.map(function(duplicateObject, key) {
+                return E(Record, {
+                    record: duplicateObject,
+                    key
+                })
+            })))
+    }
+
+    function Record({
+        record
+    }) {
+        return E("li", null,
+            E("a", {
+                    className: "duplicate-link",
+                    href: record.url,
+                    target: "_blank"
+                },
+                record.id))
+    }
+
+    function DuplicateCodeValues() {
+        return E("div", null,
+            E(Key),
+            E(Objects, config))
+    }
+
+    function DuplicateCodeValuesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page displays all records in the system where a particular object has duplicate values in the code column. This does not always indicate a problem, for instance the site logic may allow duplicate code values as long as only one is marked as 'active', or a child object may have duplicates with other child objects as long as they belong to different parents."]
+            },
+            E(DuplicateCodeValues))
+    }
+
+    function init() {
+        ReactDOM.render(E(DuplicateCodeValuesApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

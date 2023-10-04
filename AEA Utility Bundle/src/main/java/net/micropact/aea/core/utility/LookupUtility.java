@@ -1,0 +1,165 @@
+package net.micropact.aea.core.utility;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import com.entellitrak.ExecutionContext;
+import com.entellitrak.IncorrectResultSizeDataAccessException;
+import com.entellitrak.configuration.ServiceBundle;
+
+import net.entellitrak.aea.gl.api.etk.BundleComponentType;
+import net.entellitrak.aea.gl.api.java.GeneralRuntimeException;
+import net.micropact.aea.core.query.DatabaseSequence;
+import net.micropact.aea.utility.DataElementType;
+import net.micropact.aea.utility.LookupSourceType;
+import net.micropact.aea.utility.Utility;
+
+/**
+ * Utility class contianing functionality related to lookups.
+ *
+ * @author Zachary.Miller
+ */
+public final class LookupUtility {
+
+    /**
+     * Utility classes do not need public constructors.
+     */
+    private LookupUtility() {
+    }
+
+    /**
+     * Method to create a list based lookup definition whose value type is long.
+     *
+     * @param etk entellitrak execution context
+     * @param serviceBundle the service bundle
+     * @param lookupName the lookup name
+     * @param scriptObjectId the script object id
+     * @return the new lookup definition id
+     */
+    public static long createLookupListBasedLong(
+            final ExecutionContext etk,
+            final ServiceBundle serviceBundle,
+            final String lookupName,
+            final long scriptObjectId) {
+        try {
+            final long lookupId;
+
+            final String businessKey = generateBusinessKey(etk, lookupName);
+
+            final Map<String, Object> insertQueryParameters = Utility.arrayToMap(String.class, Object.class, new Object[][] {
+                {"lookup_source_type", LookupSourceType.LIST_BASED_SCRIPT_LOOKUP.getEntellitrakNumber()},
+                {"data_object_id", null},
+                {"value_element_id", null},
+                {"display_element_id", null},
+                {"order_by_element_id", null},
+                {"ascending_order", null},
+                {"start_date_element_id", null},
+                {"end_date_element_id", null},
+                {"sql_script_object_id", scriptObjectId},
+                {"value_return_type", DataElementType.LONG.getEntellitrakNumber()},
+                {"tracking_config_id", Utility.getTrackingConfigIdNext(etk)},
+                {"business_key", businessKey},
+                {"name", lookupName},
+                {"description", lookupName},
+                {"system_object_type", null},
+                {"system_object_display_format", null},
+                {"enable_caching", 0},
+            });
+
+            if(Utility.isSqlServer(etk)) {
+                lookupId = etk.createSQL("INSERT INTO etk_lookup_definition(lookup_source_type, data_object_id, value_element_id, display_element_id, order_by_element_id, ascending_order, start_date_element_id, end_date_element_id, sql_script_object_id, value_return_type, tracking_config_id, business_key, name, description, system_object_type, system_object_display_format, enable_caching) VALUES(:lookup_source_type, :data_object_id, :value_element_id, :display_element_id, :order_by_element_id, :ascending_order, :start_date_element_id, :end_date_element_id, :sql_script_object_id, :value_return_type, :tracking_config_id, :business_key, :name, :description, :system_object_type, :system_object_display_format, :enable_caching)")
+                        .setParameter(insertQueryParameters)
+                        .execute("lookup_definition_id");
+            } else {
+                lookupId = DatabaseSequence.HIBERNATE_SEQUENCE.getNextVal(etk);
+
+                etk.createSQL("INSERT INTO etk_lookup_definition(lookup_definition_id, lookup_source_type, data_object_id, value_element_id, display_element_id, order_by_element_id, ascending_order, start_date_element_id, end_date_element_id, sql_script_object_id, value_return_type, tracking_config_id, business_key, name, description, system_object_type, system_object_display_format, enable_caching) VALUES(:lookup_definition_id, :lookup_source_type, :data_object_id, :value_element_id, :display_element_id, :order_by_element_id, :ascending_order, :start_date_element_id, :end_date_element_id, :sql_script_object_id, :value_return_type, :tracking_config_id, :business_key, :name, :description, :system_object_type, :system_object_display_format, :enable_caching)")
+                .setParameter("lookup_definition_id", lookupId)
+                .setParameter(insertQueryParameters)
+                .execute();
+            }
+
+            BundleUtility.insertBundleMapping(etk, serviceBundle, BundleComponentType.LOOKUP_DEFINITION, businessKey);
+
+            return lookupId;
+        } catch (final IncorrectResultSizeDataAccessException e) {
+            throw new GeneralRuntimeException(e);
+        }
+    }
+
+    /**
+     * Generate a lookup business key that would be like one generated by core.
+     *
+     * @param etk entellitrak execution context
+     * @param lookupName the lookup name
+     * @return the lookup business key
+     */
+    private static String generateBusinessKey(final ExecutionContext etk, final String lookupName) {
+        final Matcher matcher = Pattern.compile("([A-Z\\d]+)", Pattern.CASE_INSENSITIVE).matcher(lookupName);
+
+        final List<String> allMatches = new ArrayList<>();
+
+        while (matcher.find()) {
+            allMatches.add(matcher.group());
+        }
+
+        final String joinedWords = allMatches.stream()
+                .map(StringUtils::capitalizeFirstLetter)
+                .collect(Collectors.joining(""));
+
+        final String proposedBusinessKey = String.format("lookup.%s",
+                StringUtils.lowercaseFirstLetter(joinedWords));
+
+        return getUniqueLookupBusinessKey(etk, proposedBusinessKey);
+    }
+
+    /**
+     * Given a proposed business key, this method will update the suffix to ensure that the business
+     * key does not already exist in the system.
+     *
+     * @param etk entellitrak execution context
+     * @param proposedBusinessKey the proposed business key
+     * @return a unique business key
+     */
+    private static String getUniqueLookupBusinessKey(final ExecutionContext etk, final String proposedBusinessKey) {
+        if(doesLookupBusinessKeyAlreadyExist(etk, proposedBusinessKey)) {
+            long suffix = 0;
+
+            while(true) {
+                ++suffix;
+
+                final String newProposedBusinesskey = String.format("%s%s",
+                        proposedBusinessKey,
+                        suffix);
+
+                if(!doesLookupBusinessKeyAlreadyExist(etk, newProposedBusinesskey)) {
+                    return newProposedBusinesskey;
+                }
+            }
+        } else {
+            return proposedBusinessKey;
+        }
+    }
+
+    /**
+     * Determine whether a lookup with a given business key already exists in the next-to-be-deployed tracking configuration.
+     *
+     * @param etk entellitrak execution context
+     * @param businessKey the business key
+     * @return whether the business key already exists
+     */
+    private static boolean doesLookupBusinessKeyAlreadyExist(final ExecutionContext etk, final String businessKey) {
+        try {
+            return 1 == etk.createSQL("SELECT COUNT(*) FROM etk_lookup_definition WHERE tracking_config_id = :trackingConfigId AND business_key = :businessKey")
+                    .setParameter("trackingConfigId", Utility.getTrackingConfigIdNext(etk))
+                    .setParameter("businessKey", businessKey)
+                    .fetchLong();
+        } catch (final IncorrectResultSizeDataAccessException e) {
+            throw new GeneralRuntimeException(e);
+        }
+    }
+}

@@ -1,0 +1,57 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="page.resource.request.do?name=net.entellitrak.aea.oAuth.publicResource.EntellitrakOAuthJavascript"></script>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+<script src="page.resource.request.do?name=net.micropact.aea.core.loadfromdisk.publicresource.LoadFromDiskReactComponents"></script>
+
+<script>
+    "use strict";
+
+    var bundleOrphans = $bundleOrphans;
+
+    const E = React.createElement
+
+    function BundleOrphans(props) {
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null,
+                    E("th", null, "Discrepancy Type"),
+                    E("th", null, "Component Type"),
+                    E("th", null, "Component Business Key"))),
+            E("tbody", null, bundleOrphans.map(function(bundleOrphan, i) {
+                return E("tr", {
+                        key: i
+                    },
+                    E("td", null, bundleOrphan.discrepancyType),
+                    E("td", null, bundleOrphan.bundleComponentType),
+                    E("td", null, bundleOrphan.componentBusinessKey))
+            })))
+    }
+
+
+    function BundleOrphansApp() {
+        return E(AeaCoreReactComponents.Application, {
+            instructions: [
+                "This page displays items which are not part of a bundle, as well as bundle mappings for objects which do not exist.",
+                "To fix the issues, you must add or remove records of the ETK_BUNDLE_MAPPING or ETK_BUNDLE_SCRIPT_OBJECT table based on the Discrepancy Type and Component Type."
+            ]
+        }, E(BundleOrphans))
+    }
+
+    function init() {
+        ReactDOM.render(E(React.StrictMode, null,
+        		E(LoadFromDiskReactComponents.DisableWhenLoadFromDisk, null,
+        				E(BundleOrphansApp))),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

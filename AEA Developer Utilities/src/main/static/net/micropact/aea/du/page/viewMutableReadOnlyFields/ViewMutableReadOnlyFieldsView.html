@@ -1,0 +1,55 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    table.grid {
+        width: auto;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var fields = $fields
+
+    const E = React.createElement
+
+    function ViewMutableReadOnlyFields() {
+        return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+            headers: ["Data Object", "Form Name", "Element Name"],
+            tbody: E("tbody", null,
+                fields.map(function(field, i) {
+                    return E("tr", {
+                            key: i
+                        },
+                        E("td", null, field.objectName),
+                        E("td", null, field.formName),
+                        E("td", null, field.formControlName))
+                }))
+        })
+    }
+
+    function ViewMutableReadOnlyFieldsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page displays fields which are marked as Mutable Read Only fields in the Form Designer.",
+                    "All Read Only fields were migrated as Mutable as part of the 3.20.1.0.0 upgrade.",
+                    "Any Read Only fields which do not need to be Mutable should be changed to Immutable."
+                ]
+            },
+            E(ViewMutableReadOnlyFields))
+    }
+
+    function init() {
+        ReactDOM.render(E(React.StrictMode, null,
+        		E(ViewMutableReadOnlyFieldsApp)),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

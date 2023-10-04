@@ -1,0 +1,475 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="page.resource.request.do?name=net.entellitrak.aea.oAuth.publicResource.EntellitrakOAuthJavascript"></script>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+<script src="page.resource.request.do?name=net.micropact.aea.core.loadfromdisk.publicresource.LoadFromDiskReactComponents"></script>
+
+<style>
+    .hidden {
+        display: none;
+    }
+
+    fieldset {
+        margin-bottom: 2em;
+        padding: 1em;
+        display: block;
+        border: 1px solid #c6c6c6;
+        border-radius: 0.5em;
+    }
+
+    legend {
+        position: static;
+    }
+
+    fieldset>div {
+        margin-bottom: .5em;
+        margin-top: .5em;
+        display: flex;
+    }
+
+    fieldset>div>label {
+        width: 20em;
+    }
+
+    .sectionInstructions {
+        max-width: 40em;
+        font-style: italic;
+    }
+
+    input[type=text] {
+        min-width: 40em;
+    }
+
+    select {
+        max-width: unset;
+    }
+
+    .pageCreated {
+        color: #0a0;
+        margin-bottom: 1em;
+        font-size: 1.3em;
+    }
+</style>
+
+<script>
+    "use strict";
+
+    var config = {
+        csrfToken: $csrfToken,
+
+        serviceBundles: $serviceBundles,
+        packages: $packages,
+        controllerScripts: $controllerScripts,
+        viewScripts: $viewScripts,
+        viewScriptLanguageTypes: $viewScriptLanguageTypes,
+
+        pageId: $pageId,
+        errors: $errors,
+
+        selectedServiceBundleKey: $selectedServiceBundleKey,
+        name: $name,
+        isPublic: $isPublic,
+        includeHeaderFooter: $includeHeaderFooter,
+        allUsersExecute: $allUsersExecute,
+        parentPackage: $parentPackage,
+        subPackage: $subPackage,
+        makeNewControllerScript: $makeNewControllerScript,
+        selectedControllerScript: $selectedControllerScript,
+        makeNewViewScript: $makeNewViewScript,
+        selectedViewScript: $selectedViewScript,
+        selectedViewScriptLanguageType: $selectedViewScriptLanguageType,
+        newScriptNamePrefix: $newScriptNamePrefix
+    }
+
+    const E = React.createElement
+
+    function setSelectedServiceBundleKey(selectedServiceBundleKey) {
+        config.selectedServiceBundleKey = selectedServiceBundleKey
+        init()
+    }
+
+    function setName(name) {
+        config.name = name
+        setNewScriptNamePrefix(getCalculatedScriptNamePrefix(name))
+        init()
+    }
+
+    function setIsPublic(isPublic) {
+        config.isPublic = isPublic
+        init()
+    }
+
+    function setIncludeHeaderFooter(includeHeaderFooter) {
+        config.includeHeaderFooter = includeHeaderFooter
+        init()
+    }
+
+    function setAllUsersExecute(allUsersExecute) {
+        config.allUsersExecute = allUsersExecute
+        init()
+    }
+
+    function setParentPackage(parentPackage) {
+        config.parentPackage = parentPackage
+        init()
+    }
+
+    function setSubPackage(subPackage) {
+        config.subPackage = subPackage
+        init()
+    }
+
+    function setMakeNewControllerScript(makeNewControllerScript) {
+        config.makeNewControllerScript = makeNewControllerScript
+        init()
+    }
+
+    function setSelectedControllerScript(selectedControllerScript) {
+        config.selectedControllerScript = selectedControllerScript
+        init()
+    }
+
+    function setSelectedViewScript(selectedViewScript) {
+        config.selectedViewScript = selectedViewScript
+        init()
+    }
+
+    function setMakeNewViewScript(makeNewViewScript) {
+        config.makeNewViewScript = makeNewViewScript
+        init()
+    }
+
+    function setSelectedViewScriptLanguageType(languageType) {
+        config.selectedViewScriptLanguageType = languageType
+        init()
+    }
+
+    function setNewScriptNamePrefix(scriptNamePrefix) {
+        config.newScriptNamePrefix = scriptNamePrefix
+        init()
+    }
+
+    /*
+     * Get the calculate script name prefix based off of a given page name.
+     */
+    function getCalculatedScriptNamePrefix(string) {
+        var words = string.match(/[a-z\d]+/ig) || []
+
+        return words
+            .map(function(string) {
+                return string.capitalize()
+            })
+            .join("")
+    }
+
+    function getBusinessKey() {
+        var parentPackage = config.parentPackage
+        var subPackage = config.subPackage
+
+        var separator
+        if (parentPackage !== "" && subPackage !== "") {
+            separator = "."
+        } else {
+            separator = ""
+        }
+
+        return parentPackage + separator + subPackage
+    }
+
+    function getNewControllerScriptName() {
+        return config.newScriptNamePrefix + "Controller"
+    }
+
+    function getNewViewScriptName() {
+        return config.newScriptNamePrefix + "View"
+    }
+
+    function PageCreated() {
+        if (config.pageId === null) {
+            return null
+        } else {
+            return E("div", {
+                    className: "pageCreated"
+                },
+                "Page Created ",
+                E("a", {
+                        href: "page.update.request.do?id=" + encodeURIComponent(config.pageId),
+                        target: "_blank"
+                    },
+                    "Edit Page"))
+        }
+    }
+
+    function TextInput(props) {
+        var newProps = {
+            ...props
+        }
+
+        var newClassName
+
+        if ("className" in props) {
+            newClassName = props.className + " formInput"
+        } else {
+            newClassName = "formInput"
+        }
+
+        newProps.className = newClassName
+
+        if (!("type" in props)) {
+            newProps.type = "text"
+        }
+
+        return E("input", newProps)
+    }
+
+    function CreateStandardPage() {
+        return E("div", null,
+            E(AeaCoreReactComponents.Errors, {
+                errors: config.errors
+            }),
+            E(PageCreated),
+            E(AeaCoreReactComponents.Form, {
+                    method: "POST",
+                    action: "page.request.do?page=du.page.createStandardPage",
+                    csrfToken: config.csrfToken
+                },
+                E("input", {
+                    type: "hidden",
+                    name: "isUpdate",
+                    value: "1"
+                }),
+                E("fieldset", null,
+                    E("legend", null, "General Information"),
+                    E("div", null,
+                        E("label", null, "Service Bundle"),
+                        E("select", {
+                                name: "selectedServiceBundleKey",
+                                value: config.selectedServiceBundleKey,
+                                onChange: function(event) {
+                                    setSelectedServiceBundleKey(event.target.value)
+                                }
+                            },
+                            config.serviceBundles.map(function(serviceBundle) {
+                                return E("option", {
+                                        key: serviceBundle.businessKey,
+                                        value: serviceBundle.businessKey
+                                    },
+                                    serviceBundle.name)
+                            }))),
+                    E("div", null,
+                        E("label", null, "Page Name"),
+                        E(TextInput, {
+                            name: "name",
+                            value: config.name,
+                            onChange: function(event) {
+                                setName(event.target.value)
+                            }
+                        })),
+                    E("div", null,
+                        E("label", null, "Make page publicly accessible?"),
+                        E("input", {
+                            type: "checkbox",
+                            name: "isPublic",
+                            value: "1",
+                            checked: config.isPublic,
+                            onChange: function(event) {
+                                setIsPublic(!config.isPublic)
+                            }
+                        })),
+                    E("div", null,
+                        E("label", null, "Application Navigation, Header and Footer?"),
+                        E("input", {
+                            type: "checkbox",
+                            name: "includeHeaderFooter",
+                            value: "1",
+                            checked: config.includeHeaderFooter,
+                            onChange: function(event) {
+                                setIncludeHeaderFooter(!config.includeHeaderFooter)
+                            }
+                        })),
+                    E("div", null,
+                        E("label", null, "All Users Execute Permission?"),
+                        E("input", {
+                            type: "checkbox",
+                            name: "allUsersExecute",
+                            value: "1",
+                            checked: config.allUsersExecute,
+                            onChange: function(event) {
+                                setAllUsersExecute(!config.allUsersExecute)
+                            }
+                        }))),
+                E("fieldset", null,
+                    E("legend", null, "Package Information"),
+                    E("div", {
+                            className: "sectionInstructions"
+                        },
+                        "You must specify a package for your page. This will be used for the page business key, as well as the package for a new Controller/View script if one needs to be created. For convenience, you can select a Parent Package from the existing site's packages and Sub Package, or enter the entire path directly into Sub Package."),
+                    E("div", null,
+                        E("label", null, "Parent Package"),
+                        E("select", {
+                                name: "parentPackage",
+                                value: config.parentPackage,
+                                onChange: function(event) {
+                                    setParentPackage(event.target.value)
+                                }
+                            },
+                            E("option", {
+                                value: ""
+                            }),
+                            config.packages.map(function(thePackage) {
+                                return E("option", {
+                                        key: thePackage.path,
+                                        value: thePackage.path
+                                    },
+                                    thePackage.path)
+                            }))),
+                    E("div", null,
+                        E("label", null, "Sub Package"),
+                        E(TextInput, {
+                            name: "subPackage",
+                            value: config.subPackage,
+                            onChange: function(event) {
+                                setSubPackage(event.target.value)
+                            }
+                        })),
+                    E("div", null,
+                        E("label", null, "Full Package/Business Key"),
+                        getBusinessKey())
+                ),
+                E("fieldset", null,
+                    E("legend", null, "Controller Script"),
+                    E("div", null,
+                        E("label", null, "Make new Controller Script"),
+                        E("input", {
+                            name: "makeNewControllerScript",
+                            type: "checkbox",
+                            value: "1",
+                            checked: config.makeNewControllerScript,
+                            onChange: function(event) {
+                                setMakeNewControllerScript(!config.makeNewControllerScript)
+                            }
+                        })),
+                    E("div", {
+                            className: config.makeNewControllerScript ? "hidden" : ""
+                        },
+                        E("label", null, "Controller Script"),
+                        E("select", {
+                                name: "selectedControllerScript",
+                                value: config.selectedControllerScript,
+                                onChange: function(event) {
+                                    setSelectedControllerScript(event.target.value)
+                                }
+                            },
+                            config.controllerScripts.map(function(script) {
+                                return E("option", {
+                                        key: script,
+                                        value: script
+                                    },
+                                    script)
+                            })))),
+                E("fieldset", null,
+                    E("legend", null, "View Script"),
+                    E("div", null,
+                        E("label", null, "Make new View Script"),
+                        E("input", {
+                            name: "makeNewViewScript",
+                            type: "checkbox",
+                            value: "1",
+                            checked: config.makeNewViewScript,
+                            onChange: function(event) {
+                                setMakeNewViewScript(!config.makeNewViewScript)
+                            }
+                        })),
+                    E("div", {
+                            className: config.makeNewViewScript ? "hidden" : ""
+                        },
+                        E("label", null, "View Script"),
+                        E("select", {
+                                name: "selectedViewScript",
+                                value: config.selectedViewScript,
+                                onChange: function(event) {
+                                    setSelectedViewScript(event.target.value)
+                                }
+                            },
+                            config.viewScripts.map(function(script) {
+                                return E("option", {
+                                        key: script,
+                                        value: script
+                                    },
+                                    script)
+                            }))),
+                    E("div", {
+                            className: config.makeNewViewScript ? "" : "hidden"
+                        },
+                        E("label", null, "View Script Language Type"),
+                        E("select", {
+                                name: "selectedViewScriptLanguageType",
+                                value: config.selectedViewScriptLanguageType,
+                                onChange: function(event) {
+                                    setSelectedViewScriptLanguageType(event.target.value)
+                                }
+                            },
+                            config.viewScriptLanguageTypes.map(function(languageType) {
+                                return E("option", {
+                                        key: languageType.name,
+                                        value: languageType.name
+                                    },
+                                    languageType.displayName)
+                            })))),
+                E("fieldset", {
+                        className: config.makeNewControllerScript || config.makeNewViewScript ? "" : "hidden"
+                    },
+                    E("legend", null, "New Script Name"),
+                    E("div", null,
+                        E("label", null, "New Script Name Prefix"),
+                        E(TextInput, {
+                            name: "newScriptNamePrefix",
+                            value: config.newScriptNamePrefix,
+                            onChange: function(event) {
+                                setNewScriptNamePrefix(event.target.value)
+                            }
+                        })),
+                    E("div", {
+                            className: config.makeNewControllerScript ? "" : "hidden"
+                        },
+                        E("label", null, "New Controller Script Name"),
+                        getNewControllerScriptName()),
+                    E("div", {
+                            className: config.makeNewViewScript ? "" : "hidden"
+                        },
+                        E("label", null, "New View Script Name"),
+                        getNewViewScriptName())),
+                E("button", {
+                        className: "formButton"
+                    },
+                    "Create Page")
+            ))
+    }
+
+    function CreateStandardPageApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["Tool for quickly creating a \"Standard\" page using new or existing script objects for the controller/view.",
+                    "For javascript, consider using public resources instead of pages. For 'Ajax' pages, consider using Endpoints",
+                    "This page does very limited error checking.",
+                    "Any new script objects created will only be created directly in the System Repository.",
+                    "After creating a new Script Object, you may need to restart the application to clear the core Script Object cache."
+                ]
+            },
+            E(CreateStandardPage))
+    }
+
+    function init() {
+        ReactDOM.render(E(React.StrictMode, null,
+        		E(LoadFromDiskReactComponents.DisableWhenLoadFromDisk, null,
+        				E(CreateStandardPageApp))),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

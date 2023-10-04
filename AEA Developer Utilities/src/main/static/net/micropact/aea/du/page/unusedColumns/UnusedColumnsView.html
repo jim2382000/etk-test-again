@@ -1,0 +1,74 @@
+<div id="app"></div>
+
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .command {
+        display: block;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var E = React.createElement
+
+    var unusedColumnsModel = (function() {
+        var state = {
+            unusedColumns: $unusedColumns
+        }
+
+        return {
+            unusedColumns: state.unusedColumns
+        }
+    }())
+
+    function UnusedColumns() {
+        var unusedColumns = unusedColumnsModel.unusedColumns
+
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null,
+                    E("th", null, "Table"),
+                    E("th", null, "Column"),
+                    E("th", null, "Drop Query"))),
+            E("tbody", null, unusedColumns.map(function(column, i) {
+                return E("tr", {
+                        key: i
+                    },
+                    E("td", null, column.TABLE_NAME),
+                    E("td", null, column.COLUMN_NAME),
+                    E("td", null,
+                        column.indexes.map(function(index, j) {
+                            return E("span", {
+                                    key: j,
+                                    className: "command"
+                                },
+                                "DROP INDEX " + column.TABLE_NAME + "." + index + ";")
+                        }),
+                        E("span", {
+                                className: "command"
+                            },
+                            "ALTER TABLE " + column.TABLE_NAME + " DROP COLUMN " + column.COLUMN_NAME + ";")))
+            })))
+    }
+
+    function UnusedColumnsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page displays columns which appear to have been part of the data model in the past, but do not appear to be part of the data model anymore.",
+                    "If you believe that there are columns which are showing up which should not, or should show up but are not, please contact System Design."
+                ]
+            },
+            E(UnusedColumns))
+    }
+
+    ReactDOM.render(E(UnusedColumnsApp, null),
+        document.getElementById("app"))
+</script>

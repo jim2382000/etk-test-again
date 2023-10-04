@@ -1,0 +1,44 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    em {
+        font-weight: bold;
+        font-style: normal;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function ForeignKeys() {
+        return E("a", {
+                className: "button",
+                href: "page.request.do?page=du.page.dataDictionary.download"
+            },
+            "Download CSV")
+    }
+
+    function ForeignKeysApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page provides a link for downloading a CSV file containing information about the data model with regards to Tracked Data Objects and Elements.",
+                    "Please provide feedback if you need more or fewer fields, or some other alternative user interface."
+                ]
+            },
+            E(ForeignKeys)
+        )
+    }
+
+    jQuery(function init() {
+        ReactDOM.render(E(ForeignKeysApp),
+            document.getElementById("app"))
+    })
+</script>
+
+<div id="app"></div>

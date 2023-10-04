@@ -1,0 +1,68 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        csrfToken: $csrfToken,
+        orphanedSharedObjectPermissionIds: $orphanedSharedObjectPermissionIds
+    }
+
+    const E = React.createElement
+
+    function OrphanedSharedObjectPermissions() {
+        return E("div", null,
+            E("button", {
+                    className: "formButton",
+                    type: "button",
+                    onClick: function(event) {
+                        jQuery.post("page.request.do?page=du.page.orphanedSharedObjectPermissionsClean", {
+                                    csrfToken: config.csrfToken
+                                },
+                                null,
+                                "json")
+                            .done(function() {
+                                alert("Orphans removed")
+                            }).fail(function() {
+                                alert("Could not remove orphaned records")
+                            })
+                    }
+                },
+                "Delete Records"),
+            E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+                className: "aea-core-grid",
+                headers: ["Shared Object Permission Id"],
+                tbody: E("tbody", null,
+                    config.orphanedSharedObjectPermissionIds.map(function(sharedObjectPermissionId) {
+                        return E("tr", {
+                                key: sharedObjectPermissionId
+                            },
+                            E("td", null, sharedObjectPermissionId))
+                    }))
+            }))
+    }
+
+    function OrphanedSharedObjectPermissionsApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: [
+                    "This page identifies records in ETK_SHARED_OBJECT_PERMISSION which do not have corresponding entries in ETK_PAGE_PERMISSION, ETK_REPORT_PERMISISON or ETK_SEARCH_PERMISSION.",
+                    "This causes issues such as not being able to check out the system repository."
+                ]
+            },
+            E(OrphanedSharedObjectPermissions))
+    }
+
+    function init() {
+        ReactDOM.render(E(OrphanedSharedObjectPermissionsApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

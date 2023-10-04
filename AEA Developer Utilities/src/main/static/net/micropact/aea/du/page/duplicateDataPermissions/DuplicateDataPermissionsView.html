@@ -1,0 +1,68 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        csrfToken: $csrfToken,
+        duplicateRecords: $duplicateRecords
+    }
+
+    const E = React.createElement
+
+    function DashboardOptions() {
+        return E("div", null,
+            E("button", {
+                    className: "formButton",
+                    type: "button",
+                    onClick: function(event) {
+                        jQuery.post("page.request.do?page=du.page.duplicateDataPermissionsClean", {
+                                    csrfToken: config.csrfToken
+                                },
+                                null,
+                                "json")
+                            .done(function() {
+                                alert("Duplicates removed")
+                            }).fail(function() {
+                                alert("Could not remove duplicates")
+                            })
+                    }
+                },
+                "Clean Duplicates"),
+            E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+                className: "aea-core-grid",
+                headers: ["Data Object Type", "Data Element Type", "Role ID", "Number of Records"],
+                tbody: E("tbody", null,
+                    config.duplicateRecords.map(function(record, i) {
+                        return E("tr", {
+                                key: i
+                            },
+                            E("td", null, record.data_object_type),
+                            E("td", null, record.data_element_type),
+                            E("td", null, record.role_id),
+                            E("td", null, record.count))
+                    }))
+            }))
+    }
+
+    function DashboardOptionsApp() {
+        return E(AeaCoreReactComponents.Application, {
+            instructions: ["This page identifies duplicate records in the ETK_DATA_PERMISSION table."
+            ]
+        }, E(DashboardOptions))
+    }
+
+    function init() {
+        ReactDOM.render(E(DashboardOptionsApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

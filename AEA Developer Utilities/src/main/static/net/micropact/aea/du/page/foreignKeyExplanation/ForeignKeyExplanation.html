@@ -1,0 +1,63 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    em {
+        font-weight: bold;
+        font-style: normal;
+    }
+
+    .aea-core-instructions p:first-child {
+        margin-top: 0;
+    }
+
+    .aea-core-instructions p:last-child {
+        margin-bottom: 0;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function ForeignKeys() {
+        return E("a", {
+                className: "button",
+                href: "page.request.do?page=du.page.foreignKeyCsv"
+            },
+            "Download CSV")
+    }
+
+    function Instructions() {
+        return E("div", null,
+            E("p", null, "This page allows the download of a CSV file which contains information about which database columns reference which other columns in order to aid in creation of an ERD."),
+            E("p", null, "The file also contains queries to add and drop the Foreign Key constraints. This allows you to add the constraints and then use a 3rd party tool to build an ERD."),
+            E("p", null, "You ", E("em", null, "should not"), " leave the constraints in place and should remove them immediately after building the ERD."),
+            E("p", null, "The queries to add and remove keys ",
+                E("em", null, "will not work in SQL Server"),
+                " because of column type discrepencies."),
+            E("p", null, "The column references are determined through a combination of examining entellitark metadata and implementaion of ", E("code", null, "net.entellitrak.aea.lookup.IAeaLookupHandler"), ". This means that creation of some foreign keys may fail if you your lookup indicates that it references a View or non-unique column. You may either wish to ignore these columns, or update your ERD after the fact."))
+    }
+
+    function ForeignKeysApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: E(Instructions)
+            },
+            E(ForeignKeys)
+        )
+    }
+
+    function init() {
+        ReactDOM.render(E(ForeignKeysApp),
+            jQuery('.app')[0])
+    }
+
+    jQuery(init)
+</script>
+
+<div class="app"></div>

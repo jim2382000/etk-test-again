@@ -1,0 +1,36 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var count = $count
+
+    const E = React.createElement
+
+    function CleanOrphanedMtableEntries() {
+        return E("p", null,
+            E("strong", null, count),
+            " Orphaned M_ Table Entries have been deleted.")
+    }
+
+    function CleanOrphanedMtableEntriesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page deletes entries from Multi-Select tables which are referencing tracked data objects which no longer exist."]
+            },
+            E(CleanOrphanedMtableEntries))
+    }
+
+    function init() {
+        ReactDOM.render(E(CleanOrphanedMtableEntriesApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

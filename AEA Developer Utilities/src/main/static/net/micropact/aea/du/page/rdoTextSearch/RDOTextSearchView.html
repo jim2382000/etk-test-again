@@ -1,0 +1,395 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+<style>
+    /* Core hides the legend so we have to unhide it. */
+    .aea-core-mainContent legend {
+        position: initial;
+    }
+
+    form>div {
+        display: table-row;
+    }
+
+    form>div>* {
+        display: table-cell;
+        padding: 1em;
+    }
+
+    fieldset {
+        border: 1px solid #d3d3d3;
+        border-radius: 0.5em;
+    }
+
+    .checkboxes {
+        padding: 0;
+        list-style: none;
+    }
+
+    .checkboxes>li {
+        margin: .5em 0;
+    }
+
+    .form-label:after {
+        content: ": ";
+    }
+
+    input[type=submit] {
+        margin: 1em 0 0 1em;
+    }
+
+    h4 {
+        font-size: 1.2em;
+        margin: 2em 0 1em 0;
+    }
+
+    ul.collapsed {
+        display: none;
+    }
+
+    .allNone {
+        font-style: italic;
+        font-weight: bold;
+    }
+
+    .no-result {
+        color: #666;
+        font-size: 1.5em;
+        font-style: italic;
+        margin: 1em;
+    }
+
+    .no-result:before {
+        content: "(";
+    }
+
+    .no-result:after {
+        content: ")";
+    }
+
+    /* Tables */
+
+    .results {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Records */
+
+    .results>li>ul>li {
+        display: table-row;
+    }
+
+    .results>li>ul>li>* {
+        display: table-cell;
+    }
+
+    .results>li>ul>li>a {
+        font-weight: bold;
+    }
+
+    /* Elements */
+
+    .results>li>ul>li>ul {
+        margin: 0;
+        padding: 1em 0 0 1em;
+    }
+
+    .results>li>ul>li>ul>li {
+        display: table-row;
+    }
+
+    .results>li>ul>li>ul>li>* {
+        display: table-cell;
+    }
+
+    .results>li>ul>li>ul>li>span {
+        font-weight: bold;
+        padding-right: 1em;
+        padding-bottom: 0.3em;
+    }
+
+    /*.results > li > ul > li > ul > li > span:after {
+        content: ":";
+        margin-right: 1em;
+    }*/
+    /* Lines */
+
+    .results>li>ul>li>ul>li>ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .matching-line {
+        white-space: pre;
+    }
+
+    .match {
+        font-weight: bold;
+        color: #EA2B1B;
+        font-style: italic;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        errors: $errors,
+        doSearch: $doSearch,
+        searchText: $searchText,
+        dataTypes: $dataTypes,
+        dataObjects: $dataObjects,
+        searchResults: $searchResults
+    }
+
+    const E = React.createElement
+
+    function setAllDataObjectsSelected(selected) {
+        config.dataObjects.forEach(function(dataObject) {
+            dataObject.selected = selected
+        })
+        init()
+    }
+
+    function setDataObjectSelected(dataObjectKey, selected) {
+        config.dataObjects.filter(function(dataObject) {
+            return dataObject.BUSINESS_KEY == dataObjectKey
+        })[0].selected = selected
+
+        init()
+    }
+
+    function setDataTypeSelected(dataTypeValue, selected) {
+        config.dataTypes.filter(function(dataType) {
+            return dataType.value === dataTypeValue
+        })[0].selected = selected
+
+        init()
+    }
+
+    function AllResults(props) {
+        return !props.doSearch ? null : props.allResults.length == 0 ? E("div", {
+            className: "no-result"
+        }, "No Results") : E("ul", {
+                className: "results"
+            },
+            props.allResults.map(function(table, i) {
+                return E("li", {
+                        key: i
+                    },
+                    E("h4", null, E("a", {
+                            href: "admin.refdata.list.do?dataObjectKey=" + table.BUSINESS_KEY,
+                            target: "_blank"
+                        },
+                        E("span", null, table.LABEL))),
+                    E(Records, table))
+            }))
+    }
+
+    function Records(props) {
+        return E("ul", null,
+            props.records.map(function(record, i) {
+                return E("li", {
+                        key: i
+                    },
+                    E("a", {
+                            href: "admin.refdata.update.request.do?dataObjectKey=" + props.BUSINESS_KEY + "&trackingId=" + record.ID,
+                            target: "_blank"
+                        },
+                        record.ID),
+                    E(Columns, record))
+            }))
+    }
+
+    function Columns(props) {
+        return E("ul", null,
+            props.COLUMNS.map(function(column, i) {
+                return E("li", {
+                        key: i
+                    },
+                    E("span", null, column.ELEMENT_NAME),
+                    E(MultipleLines, {
+                        lines: column.VALUE
+                    }))
+            }))
+    }
+
+    function MultipleLines(props) {
+        return E("ul", null,
+            props.lines.map(function(line, i) {
+                return E("li", {
+                        key: i
+                    },
+                    E(SingleLine, {
+                        fragments: line
+                    }))
+            }))
+    }
+
+    function SingleLine(props) {
+        return E("div", {
+                className: "matching-line"
+            },
+            props.fragments.map(function(fragment, i) {
+                return E("span", {
+                        key: i,
+                        className: fragment.isMatch ? "match" : null
+                    },
+                    fragment.fragment)
+            }))
+    }
+
+    function DataObjectsView(props) {
+        const [state, setState] = React.useState({
+            collapsed: true
+        })
+
+
+        var collapsedClass = state.collapsed ? "collapsed" : "expanded"
+        var allSelected = props.dataObjects.every(function(dataObject) {
+            return dataObject.selected
+        })
+        return E("div", null,
+            E("div", null,
+                E("label", {
+                    className: "form-label"
+                }, "Data Objects")),
+            E("fieldset", null,
+                E("legend", null, E("a", {
+                        className: collapsedClass,
+                        href: "javascript:void(0)",
+                        onClick: function(e) {
+                            setState({
+                                collapsed: !state.collapsed
+                            })
+                            e.preventDefault()
+                        }
+                    },
+                    state.collapsed ? "Expand" : "Collapse")),
+                E("ul", {
+                        className: "checkboxes " + collapsedClass
+                    },
+                    E("li", null,
+                        E("label", null,
+                            E("input", {
+                                type: "checkbox",
+                                value: "1",
+                                checked: allSelected,
+                                onChange: function(e) {
+                                    setAllDataObjectsSelected(!allSelected)
+                                }
+                            }),
+                            E("span", {
+                                className: "allNone"
+                            }, "Select All/None"))),
+                    props.dataObjects.map(function(dataObject) {
+                        return E("li", {
+                                key: dataObject.BUSINESS_KEY
+                            },
+                            E("label", null,
+                                E("input", {
+                                    type: "checkbox",
+                                    name: "dataObjects",
+                                    value: dataObject.BUSINESS_KEY,
+                                    checked: dataObject.selected,
+                                    onChange: function(e) {
+                                        setDataObjectSelected(dataObject.BUSINESS_KEY, !dataObject.selected)
+                                    }
+                                }),
+                                dataObject.LABEL))
+                    }))))
+    }
+
+    function InputForm(props) {
+        return E("form", {
+                method: "POST"
+            },
+            E("input", {
+                type: "hidden",
+                name: "page",
+                value: "du.page.rdoTextSearch"
+            }),
+            E("input", {
+                type: "hidden",
+                name: "update",
+                value: "1"
+            }),
+            E("div", null,
+                E("div", null,
+                    E("label", {
+                        className: "form-label"
+                    }, "Search Text")),
+                E("input", {
+                    type: "text",
+                    name: "searchText",
+                    defaultValue: props.searchText
+                })),
+            E("div", null,
+                E("div", null,
+                    E("label", {
+                        className: "form-label"
+                    }, "Data Types")),
+                E("ul", {
+                        className: "checkboxes"
+                    },
+                    props.dataTypes.map(function(dataType) {
+                        var value = dataType.value
+                        var selected = dataType.selected
+
+                        return E("li", {
+                                key: value
+                            },
+                            E("label", null,
+                                E("input", {
+                                    type: "checkbox",
+                                    name: "dataTypes",
+                                    value: value,
+                                    checked: selected,
+                                    onChange: function(event) {
+                                        setDataTypeSelected(value, !selected)
+                                    }
+                                }),
+                                dataType.display))
+                    }))),
+            E(DataObjectsView, config),
+            E("div", null, E("input", {
+                className: "formButton",
+                type: "submit",
+                value: "Search"
+            })))
+    }
+
+    function RDOTextSearch() {
+        return E("div", null,
+            E(AeaCoreReactComponents.Errors, config),
+            E(InputForm, config),
+            E(AllResults, {
+                doSearch: config.doSearch,
+                allResults: config.searchResults
+            }))
+    }
+
+    function RDOTextSearchApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page can be used to perform a search across the textual (text/long text) data elements of RDO data.",
+                    "This is useful if you need to change RDO data but do not know which RDO it is stored in as well as if you want to find out whether any RDOs refer to a particular string."
+                ]
+            },
+            E(RDOTextSearch))
+    }
+
+    function init() {
+        ReactDOM.render(E(RDOTextSearchApp),
+            document.getElementById("app"))
+    }
+
+    jQuery(init)
+</script>
+
+<div id="app"></div>

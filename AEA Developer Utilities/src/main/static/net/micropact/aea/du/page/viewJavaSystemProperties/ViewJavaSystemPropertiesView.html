@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .preformatted {
+        white-space: pre-wrap;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    (function() {
+        var systemProperties = $systemProperties
+
+        var E = React.createElement
+
+        function SystemPropertiesApp() {
+            return E("div", null,
+                E(Instructions),
+                E(SystemProperties))
+        }
+
+        function Instructions() {
+            return AeaCoreReactComponents.Instructions({
+                instructions: "This page the Java System Properties from System.getProperties()"
+            })
+        }
+
+        function SystemProperties() {
+            return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+                className: "aea-core-grid preformatted",
+                headers: ["Key", "Value"],
+                caption: "Java System Properties",
+                tbody: E("tbody", null, systemProperties.map(function(systemProperty) {
+                    return E("tr", {
+                            key: systemProperty.key
+                        },
+                        E("td", null, systemProperty.key),
+                        E("td", null, systemProperty.value))
+                }))
+            })
+        }
+
+        function initialize() {
+            ReactDOM.render(SystemPropertiesApp(null),
+                document.querySelector('.app'))
+        }
+
+        jQuery(initialize)
+    }())
+</script>
+
+<div class="app"></div>

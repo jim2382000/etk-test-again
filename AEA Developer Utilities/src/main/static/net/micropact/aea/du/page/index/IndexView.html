@@ -1,0 +1,71 @@
+<div class="aea-links">
+    <style>
+        .aea-links h3 {
+            color: #333333;
+            margin: 1em 0 1em 0.5em;
+            font-size: 1.17em;
+        }
+        
+        .aea-links a {
+            display: inline-block;
+            width: 23em;
+            text-decoration: none;
+            color: #0066cc;
+            background-color: #FFFFFF;
+            line-height: 2em;
+            border-bottom-style: solid;
+            border-bottom-width: 1px;
+            border-bottom-color: #d3d3d3;
+            padding-left: 1em;
+            cursor: pointer;
+        }
+        
+        .etk-theme-hydrogen .aea-links a {
+        	color: #3399CC
+        }
+        
+        .aea-links a:hover {
+            color: #FFFFFF;
+            background-color: #0066cc;
+        }
+        
+        .etk-theme-hydrogen .aea-links a:hover {
+        	background-color: #3399CC;
+        }
+        
+        .aea-links ul {
+            list-style: none;
+            margin-left: 0em;
+            padding-left: 0em;
+        }
+        
+        .aea-links>ul {
+            margin-top: 0em;
+        }
+        
+        .aea-links>ul>li {
+            display: inline-block;
+            vertical-align: text-top;
+            margin-left: 1em;
+        }
+
+        .aea-links>ul>li>ul>li:first-child a {
+            border-top-style: solid;
+            border-top-width: 1px;
+            border-top-color: #d3d3d3;
+        }
+
+    </style>
+    <ul>
+    	#foreach($developerUtilityPageGroup in $developerUtilityPageGroups)
+    		<li>
+    			<h3>${esc.escapeHtml($developerUtilityPageGroup.getName())}</h3>
+    			<ul>
+    				#foreach($developerUtilityPage in $developerUtilityPageGroup.getDeveloperUtilityPages())
+    					<li><a href="${esc.escapeHtml($developerUtilityPage.getUrl())}" target="_blank">$esc.escapeHtml($developerUtilityPage.getName())</a></li>
+    				#end
+    			</ul>
+    		</li>
+    	#end
+    </ul>
+</div>

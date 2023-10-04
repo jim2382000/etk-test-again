@@ -1,0 +1,48 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    table.grid {
+        width: auto;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const E = React.createElement
+
+    function SchedulerJobStatus() {
+
+        const targetRef = React.useRef()
+
+        React.useEffect(function() {
+            const div = targetRef.current
+            jQuery(div).load("page.request.do", {
+                page: "du.page.schedulerJobStatus"
+            })
+        }, [])
+
+        return E("div", {
+            ref: targetRef
+        })
+    }
+
+    function SchedulerJobStatusApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page indicates whether there is a problem with the Scheduler Jobs"],
+            },
+            E(SchedulerJobStatus))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(SchedulerJobStatusApp),
+            jQuery('.app')[0])
+    })
+</script>
+
+<div class="app"></div>

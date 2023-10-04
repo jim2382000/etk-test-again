@@ -1,0 +1,174 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<style>
+    .invalid {
+        background-color: #FE6565;
+    }
+
+    .formLabel {
+        margin-right: 0.2em;
+        width: unset;
+    }
+
+    .etk-theme-helium #app .formLabel {
+        line-height: 36px;
+    }
+
+    .formLabel:after {
+        content: ":"
+    }
+
+    .scriptObjects>li {
+        margin-top: 1em;
+        margin-bottom: 1em;
+    }
+
+    ul.scriptObjects>li>div {
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0.2em;
+        font-size: 1.3em;
+    }
+    
+    .typeOfReference{
+    
+    }
+    
+    .referenceName{
+    	font-weight: bold;
+    	margin: 0 1em;
+    }
+    
+    .referenceBusinessKey{
+    	font-style: italic;
+    }
+</style>
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    const scriptObjects = $scriptObjects
+    
+    const E = React.createElement
+    
+    function isRegexValid(string) {
+        try {
+            new RegExp(string)
+            return true
+        } catch (e) {
+            return false
+        }
+    }
+
+    function Regex(props) {
+    	const {
+    		regex,
+    		setRegex
+    	} = props
+    	
+        return E("div", null,
+            E("label", {
+                    className: "formLabel"
+                },
+                "Filter Script Object by Name (Regex)"),
+            E("input", {
+                type: "text",
+                className: isRegexValid(regex) ? null : "invalid",
+                value: regex,
+                onChange: event => {
+                    setRegex(event.target.value)
+                }
+            }))
+    }
+
+    function References(props) {
+    	const {
+    		references
+    	} = props
+    	
+        return E("ul", null,
+                references.map((reference, referenceIndex)=> {
+                    return E("li", {
+                            key: referenceIndex
+                        },
+                        E("span", {className: "typeOfReference"}, reference.typeOfReference),
+                        " ",
+                        E("span", {className: "referenceName"}, reference.name),
+                        " ",
+                        E("span", {className: "referenceBusinessKey"}, `(${reference.businessKey})`))
+                }))
+    }
+
+    function ScriptObject(props) {
+    	const {
+    		scriptObject
+    	} = props
+
+        return E("li", null,
+            E("div", null, scriptObject.fullyQualifiedScriptName),
+            E(References, scriptObject))
+    }
+
+    function ScriptObjects(props) {
+    	const {
+    		scriptObjects
+    	} = props
+    	
+        return E("ul", {
+                className: "scriptObjects"
+            },
+            scriptObjects.map(scriptObject => {
+                return E(ScriptObject, {
+                    key: scriptObject.fullyQualifiedScriptName,
+                    scriptObject
+                })
+            }))
+    }
+
+    function ScriptObjectContent() {
+        const [regex, setRegex] = React.useState("")
+
+        const filteredScriptObjects = scriptObjects.filter(scriptObject => {
+        	if (isRegexValid(regex)) {
+	            const regexp = new RegExp(regex, "i")
+	
+	            return regexp.test(scriptObject.fullyQualifiedScriptName)
+	        } else {
+	            return false
+	        }
+        })
+        
+        return E("div", null,
+            E(Regex, {
+                regex,
+                setRegex
+            }),
+            E(ScriptObjects, {
+            	scriptObjects: filteredScriptObjects
+            }))
+    }
+
+    function ScriptObjectUsageApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page can be used to determine where Script Objects are being used.",
+                    "It is recommended to check this page before modifying a Script Object.",
+                    "This page may become out of date as the platform adds more handler types."
+                ]
+            },
+            E(ScriptObjectContent))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(React.StrictMode, null,
+        		E(ScriptObjectUsageApp)),
+            document.getElementById("app"))
+    })
+</script>
+
+<div id="app"></div>

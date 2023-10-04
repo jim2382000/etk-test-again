@@ -1,0 +1,60 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var trackingConfigs = [{
+            name: "Currently Deployed",
+            version: $currentlyDeployedVersion,
+            query: $currentlyDeployedQuery
+        },
+        {
+            name: "Next Deployed",
+            version: $nextDeployedVersion,
+            query: $nextDeployedQuery
+        }
+    ]
+
+    const E = React.createElement
+
+    function TrackingConfigurations() {
+        return E("table", {
+                className: "grid aea-core-grid"
+            },
+            E("thead", null,
+                E("tr", null,
+                    ["Version", "Tracking Config Id", "SQL Query"].map(function(title, i) {
+                        return E("th", {
+                            key: i
+                        }, title)
+                    }))),
+            E("tbody", null, trackingConfigs.map(function(trackingConfig, i) {
+                return E("tr", {
+                        key: i
+                    },
+                    E("td", null, trackingConfig.name),
+                    E("td", null, trackingConfig.version),
+                    E("td", null, trackingConfig.query))
+            })))
+    }
+
+    function TrackingConfigurationsApp() {
+        return E(AeaCoreReactComponents.Application, {
+            instructions: ["This page displays information regarding the two important system Tracking Configurations.",
+                "It is extremely important that you use reference the correct one (usually the Currently Deployed version) by SQL query in code."
+            ],
+        }, E(TrackingConfigurations))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(TrackingConfigurationsApp),
+            document.getElementById("app"))
+    })
+</script>
+
+<div id="app"></div>

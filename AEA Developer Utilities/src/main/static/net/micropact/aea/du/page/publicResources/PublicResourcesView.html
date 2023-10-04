@@ -1,0 +1,79 @@
+<link rel="stylesheet" href="page.resource.request.do?name=net.micropact.aea.core.publicresource.CoreCss" />
+
+<script src="resources/aea_aeautilitybundle/static/private/react/react.development.js"></script>
+<script src="resources/aea_aeautilitybundle/static/private/react/react-dom.development.js"></script>
+
+<script src="page.resource.request.do?name=net.micropact.aea.core.publicresource.ReactComponentsJavascript"></script>
+
+<script>
+    "use strict";
+
+    var config = {
+        scriptObjects: $scriptObjects
+    }
+
+    const E = React.createElement
+
+    function InclusionCode(scriptObject) {
+        var string
+
+        var fullyQualifiedScriptName = scriptObject.FULLY_QUALIFIED_SCRIPT_NAME
+
+        switch (scriptObject.scriptObjectLanguageType) {
+            case "CSS":
+                string = cssInclude(fullyQualifiedScriptName)
+                break
+            case "HTML":
+                string = htmlInclude(fullyQualifiedScriptName)
+                break;
+            case "JAVASCRIPT":
+                string = jsInclude(fullyQualifiedScriptName)
+                break;
+        }
+
+        return E("code", null, string)
+    }
+
+    function cssInclude(fullyQualifiedPath) {
+        return '<link rel="stylesheet" href="page.resource.request.do?name=' + encodeURIComponent(fullyQualifiedPath) + '"/>'
+    }
+
+    function htmlInclude(fullyQualifiedPath) {
+        return "page.resource.request.do?name=" + encodeURIComponent(fullyQualifiedPath)
+    }
+
+    function jsInclude(fullyQualifiedPath) {
+        return '<script src="page.resource.request.do?name=' + encodeURIComponent(fullyQualifiedPath) + '"><\/script>'
+    }
+
+    function PublicResources() {
+        return E(AeaCoreReactComponents.SimpleHeaderTableGrid, {
+            headers: ["Script", "Language", "Inclusion Code"],
+            caption: "Public Resources",
+            className: "aea-core-grid",
+            tbody: E("tbody", null, config.scriptObjects.map(function(scriptObject) {
+                return E("tr", {
+                        key: scriptObject.FULLY_QUALIFIED_SCRIPT_NAME
+                    },
+                    E("td", null, scriptObject.FULLY_QUALIFIED_SCRIPT_NAME),
+                    E("td", null, scriptObject.languageTypeDisplay),
+                    E("td", null, InclusionCode(scriptObject)))
+            }))
+        })
+    }
+
+    function PublicResourcesApp() {
+        return E(AeaCoreReactComponents.Application, {
+                instructions: ["This page lists the Script Objects marked as Public Resource"]
+            },
+            E(PublicResources))
+    }
+
+    jQuery(function() {
+        ReactDOM.render(E(React.StrictMode, null,
+        		E(PublicResourcesApp)),
+            document.getElementById("app"))
+    })
+</script>
+
+<div id="app"></div>
